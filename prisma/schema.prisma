@@ -1,0 +1,242 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users table - stores user accounts
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // bcrypt hashed password
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  householdMembers HouseholdMember[]
+  invitesSent      Invite[]
+  incomes          Income[]
+  expenses         Expense[]
+
+  @@index([email])
+}
+
+// Households - groups of users sharing a budget
+model Household {
+  id        String   @id @default(cuid())
+  name      String
+  currency  String   @default("USD")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  members          HouseholdMember[]
+  incomeSources    IncomeSource[]
+  categories       Category[]
+  incomes          Income[]
+  monthlyCategories MonthlyCategory[]
+  expenses         Expense[]
+  savingsGoals     SavingsGoal[]
+  savingsContributions SavingsContribution[]
+  alerts           Alert[]
+  invites          Invite[]
+
+  @@index([createdAt])
+}
+
+// Household members - users in a household
+model HouseholdMember {
+  id          String   @id @default(cuid())
+  householdId String
+  userId      String
+  role        String   @default("member") // "primary" or "member"
+  status      String   @default("active") // "active", "invited", "removed"
+  joinedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, userId])
+  @@index([householdId])
+  @@index([userId])
+}
+
+// Invites - pending household invitations
+model Invite {
+  id          String   @id @default(cuid())
+  householdId String
+  email       String
+  token       String   @unique
+  invitedBy   String?
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [invitedBy], references: [id], onDelete: SetNull)
+
+  @@index([token])
+  @@index([householdId])
+  @@index([email])
+}
+
+// Income sources - e.g., salary, freelance
+model IncomeSource {
+  id          String   @id @default(cuid())
+  householdId String
+  name        String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  incomes   Income[]
+
+  @@index([householdId])
+}
+
+// Categories - expense categories
+model Category {
+  id            String   @id @default(cuid())
+  householdId   String
+  name          String
+  color         String?
+  needsOrWants  String   @default("needs") // "needs" or "wants"
+  createdAt     DateTime @default(now())
+
+  // Relations
+  household           Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  expenses            Expense[]
+  monthlyCategories   MonthlyCategory[]
+  alerts              Alert[]
+
+  @@index([householdId])
+}
+
+// Incomes - income transactions
+model Income {
+  id            String   @id @default(cuid())
+  householdId   String
+  amount        Decimal  @db.Decimal(12, 2)
+  sourceId      String?
+  sourceName    String
+  userId        String?
+  userName      String
+  date          DateTime @db.Date
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  household Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  source    IncomeSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([householdId])
+  @@index([date])
+  @@index([userId])
+}
+
+// Monthly category budgets
+model MonthlyCategory {
+  id          String   @id @default(cuid())
+  householdId String
+  categoryId  String
+  month       String   // Format: "YYYY-MM"
+  budget      Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category  Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, categoryId, month])
+  @@index([householdId])
+  @@index([month])
+}
+
+// Expenses - expense transactions
+model Expense {
+  id            String   @id @default(cuid())
+  householdId   String
+  amount        Decimal  @db.Decimal(12, 2)
+  categoryId    String?
+  categoryName  String
+  userId        String?
+  userName      String
+  date          DateTime @db.Date
+  notes         String?
+  needsOrWants  String   @default("needs") // "needs" or "wants"
+  createdAt     DateTime @default(now())
+
+  // Relations
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([householdId])
+  @@index([date])
+  @@index([userId])
+  @@index([categoryId])
+}
+
+// Savings goals
+model SavingsGoal {
+  id              String   @id @default(cuid())
+  householdId     String
+  name            String
+  targetAmount    Decimal  @db.Decimal(12, 2)
+  currentAmount   Decimal  @default(0) @db.Decimal(12, 2)
+  deadline        DateTime? @db.Date
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  household       Household            @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  contributions   SavingsContribution[]
+
+  @@index([householdId])
+}
+
+// Savings contributions
+model SavingsContribution {
+  id        String   @id @default(cuid())
+  householdId String
+  goalId    String
+  amount    Decimal  @db.Decimal(12, 2)
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  // Relations
+  household Household   @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  goal      SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([householdId])
+  @@index([goalId])
+}
+
+// Budget alerts
+model Alert {
+  id          String   @id @default(cuid())
+  householdId String
+  type        String   // "budget_exceeded", "approaching_limit", etc.
+  categoryId  String?
+  threshold   Decimal  @db.Decimal(12, 2)
+  currentValue Decimal @default(0) @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  household Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category  Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([householdId])
+}

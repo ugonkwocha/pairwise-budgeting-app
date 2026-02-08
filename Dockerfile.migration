@@ -1,0 +1,26 @@
+# Database Migration Docker Image
+# This image runs the Supabase database migrations
+# Usage: docker run --env-file .env migration-image
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install PostgreSQL client for direct database access
+RUN apk add --no-cache postgresql-client
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy migration files
+COPY supabase ./supabase
+COPY lib ./lib
+
+# Copy migration script
+COPY scripts/run-migration.js ./scripts/run-migration.js
+
+# Run migration
+CMD ["node", "scripts/run-migration.js"]

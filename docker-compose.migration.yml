@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Migration service - runs database migrations
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    environment:
+      # Set these from your Coolify Supabase instance
+      SUPABASE_DB_HOST: ${SUPABASE_DB_HOST:-localhost}
+      SUPABASE_DB_PORT: ${SUPABASE_DB_PORT:-5432}
+      SUPABASE_DB_NAME: ${SUPABASE_DB_NAME:-pairwise}
+      SUPABASE_DB_USER: ${SUPABASE_DB_USER:-postgres}
+      SUPABASE_DB_PASSWORD: ${SUPABASE_DB_PASSWORD:-postgres}
+      NODE_ENV: ${NODE_ENV:-development}
+    # Optional: Depends on Supabase service if running locally
+    # depends_on:
+    #   - supabase
+    # Optional: Retry policy
+    restart: no
+    # Optional: Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('pg')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Optional: Local PostgreSQL for testing
+  # Uncomment to test migrations locally
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: pairwise
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:
+
+# Usage:
+# 1. Copy .env.example to .env (or create .env with database credentials)
+# 2. Run: docker-compose -f docker-compose.migration.yml up
+# 3. Check logs: docker-compose -f docker-compose.migration.yml logs migration
+# 4. Cleanup: docker-compose -f docker-compose.migration.yml down
