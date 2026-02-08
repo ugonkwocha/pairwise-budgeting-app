@@ -1,0 +1,32 @@
+# Prisma Database Migration Docker Image
+# Clones the repo from GitHub and runs Prisma migrations
+# This creates the database schema from prisma/migrations
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install git (needed to clone repo)
+RUN apk add --no-cache git
+
+# Clone the repository
+RUN git clone https://github.com/ugonkwocha/pairwise-budgeting-app.git .
+
+# Install dependencies
+RUN npm install --omit=dev
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Run database migrations
+# This applies all migrations from prisma/migrations/ to the database
+RUN npx prisma migrate deploy
+
+# Optional: Start Prisma Studio to browse the database (for development)
+# CMD ["npx", "prisma", "studio"]
+
+# Or start the Next.js application
+# CMD ["npm", "start"]
+
+# Default: Just exit after migrations complete (for CI/CD)
+CMD ["echo", "Migrations completed successfully!"]
