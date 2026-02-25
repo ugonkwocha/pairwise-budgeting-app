@@ -1,0 +1,16 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache git
+
+# Clone repository
+RUN git clone https://github.com/ugonkwocha/pairwise-budgeting-app.git . && \
+    git log -1 --oneline
+
+# Install dependencies (production only)
+RUN npm install --omit=dev
+
+# Run database migrations
+# The DATABASE_URL environment variable must be set when running this container
+CMD ["sh", "-c", "npx prisma migrate deploy && echo '✅ Database initialized successfully!'"]
