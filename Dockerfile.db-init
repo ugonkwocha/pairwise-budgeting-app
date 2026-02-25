@@ -11,6 +11,12 @@ RUN git clone https://github.com/ugonkwocha/pairwise-budgeting-app.git . && \
 # Install dependencies (production only)
 RUN npm install --omit=dev
 
-# Run database migrations
+# Generate Prisma client
+RUN npx prisma generate
+
+# Expose port for Prisma Studio
+EXPOSE 5555
+
+# Run database migrations, then start Prisma Studio
 # The DATABASE_URL environment variable must be set when running this container
-CMD ["sh", "-c", "npx prisma migrate deploy && echo '✅ Database initialized successfully!'"]
+CMD ["sh", "-c", "npx prisma migrate deploy && echo '✅ Database initialized successfully!' && npx prisma studio --browser none"]
