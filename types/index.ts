@@ -140,7 +140,6 @@ export interface OnboardingState {
 }
 
 export type Currency = 'USD' | 'EUR' | 'GBP' | 'NGN' | 'CAD' | 'AUD';
-export type TimeRange = 'weekly' | 'monthly' | 'annual';
 
 export interface BudgetSummary {
   totalIncome: number;
