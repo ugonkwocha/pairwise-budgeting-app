@@ -1,6 +1,4 @@
-// Prisma 7.x configuration
-const datasourceUrl = process.env.DATABASE_URL;
-
+// Prisma 7.x configuration - handle both client and migrate scenarios
 export default {
-  datasourceUrl,
+  datasourceUrl: process.env.DATABASE_URL || process.env.PRISMA_DATABASE_URL,
 };

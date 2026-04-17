@@ -19,4 +19,4 @@ EXPOSE 5555
 
 # Run database migrations, then start Prisma Studio
 # The DATABASE_URL environment variable must be set when running this container
-CMD ["sh", "-c", "PRISMA_DATABASE_URL=$DATABASE_URL npx prisma migrate deploy && echo '✅ Database initialized successfully!' && PRISMA_DATABASE_URL=$DATABASE_URL npx prisma studio --browser none"]
+CMD ["sh", "-c", "npx prisma migrate deploy && echo '✅ Database initialized successfully!' && npx prisma studio --browser none"]
