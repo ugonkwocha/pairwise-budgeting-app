@@ -1,5 +1,7 @@
 // Prisma 7.x configuration
-// Read DATABASE_URL from environment at runtime
+// Provide datasource URL to prisma db push when not in schema.prisma
 export default {
-  datasourceUrl: process.env.DATABASE_URL,
+  datasource: {
+    url: process.env.DATABASE_URL,
+  },
 };
