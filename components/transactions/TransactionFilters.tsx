@@ -47,8 +47,8 @@ export function TransactionFilters({
     onChange({
       ...filters,
       dateRange: {
-        ...filters.dateRange,
         start: e.target.value,
+        end: filters.dateRange?.end || e.target.value,
       },
     });
   };
@@ -57,7 +57,7 @@ export function TransactionFilters({
     onChange({
       ...filters,
       dateRange: {
-        ...filters.dateRange,
+        start: filters.dateRange?.start || e.target.value,
         end: e.target.value,
       },
     });
