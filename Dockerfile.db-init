@@ -5,15 +5,12 @@ WORKDIR /app
 RUN apk add --no-cache git
 
 # Clone repository
-RUN git clone https://github.com/ugonkwocha/pairwise-budgeting-app.git . && \
-    git log -1 --oneline
+RUN git clone https://github.com/ugonkwocha/pairwise-budgeting-app.git .
 
-# Install dependencies (production only)
+# Install dependencies (includes prisma in dependencies, not devDependencies)
 RUN npm install --omit=dev
 
-# Expose port for Prisma Studio
-EXPOSE 5555
-
-# Push schema to database directly, then start Prisma Studio
-# The DATABASE_URL environment variable must be set when running this container
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && echo '✅ Schema pushed to database!' && npx prisma studio --browser none"]
+# Push database schema to PostgreSQL
+# The DATABASE_URL environment variable must be provided at runtime
+# Exits successfully when schema is pushed
+CMD ["npx", "prisma", "db", "push", "--accept-data-loss"]
