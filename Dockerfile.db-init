@@ -16,4 +16,4 @@ EXPOSE 5555
 
 # Push schema to database directly, then start Prisma Studio
 # The DATABASE_URL environment variable must be set when running this container
-CMD ["sh", "-c", "npx prisma db push --skip-generate && echo '✅ Schema pushed to database!' && npx prisma studio --browser none"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && echo '✅ Schema pushed to database!' && npx prisma studio --browser none"]
