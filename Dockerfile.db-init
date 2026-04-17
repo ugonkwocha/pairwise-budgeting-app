@@ -14,6 +14,6 @@ RUN npm install --omit=dev
 # Expose port for Prisma Studio
 EXPOSE 5555
 
-# Run database migrations (which generates client), then start Prisma Studio
+# Push schema to database directly, then start Prisma Studio
 # The DATABASE_URL environment variable must be set when running this container
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma generate && echo '✅ Database initialized successfully!' && npx prisma studio --browser none"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && echo '✅ Schema pushed to database!' && npx prisma studio --browser none"]
