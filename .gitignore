@@ -46,3 +46,4 @@ Thumbs.db
 .claude/
 *.lock
 yarn.lock
+.vercel
