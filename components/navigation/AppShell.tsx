@@ -9,7 +9,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, onboardingCompleted } = useBudget();
   const authRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
   const isAuthRoute = authRoutes.some((route) => pathname === route);
-  const shouldShowShell = isAuthenticated && onboardingCompleted && !isAuthRoute && pathname !== '/onboarding';
+  const isInviteRoute = pathname.startsWith('/invite/');
+  const shouldShowShell = isAuthenticated && onboardingCompleted && !isAuthRoute && !isInviteRoute && pathname !== '/onboarding';
 
   if (!shouldShowShell) {
     return <>{children}</>;

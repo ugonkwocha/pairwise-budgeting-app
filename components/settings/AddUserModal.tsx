@@ -5,6 +5,7 @@ import { useBudget } from '@/lib/contexts/BudgetContext';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import type { MemberInviteResult } from '@/types';
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -12,11 +13,13 @@ interface AddUserModalProps {
 }
 
 export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
-  const { addUser, household } = useBudget();
+  const { inviteUser, household } = useBudget();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'primary' | 'member'>('member');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [invite, setInvite] = useState<MemberInviteResult | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,24 +39,77 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
     if (!household) return;
 
     setIsSubmitting(true);
+    setError('');
 
-    addUser({
-      name: name.trim(),
-      email: email.trim(),
-      role,
-      householdId: household.id,
-    });
+    try {
+      const createdInvite = await inviteUser({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        role,
+        householdId: household.id,
+      });
 
+      setInvite(createdInvite);
+      setName('');
+      setEmail('');
+      setRole('member');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to invite member');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
     setName('');
     setEmail('');
     setRole('member');
+    setError('');
+    setInvite(null);
     setIsSubmitting(false);
     onClose();
   };
 
+  const handleCopyInvite = async () => {
+    if (!invite) return;
+    await navigator.clipboard.writeText(invite.inviteUrl);
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Member">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Invite Member">
+      {invite ? (
+        <div className="space-y-4">
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-sm font-semibold text-emerald-900">Invite created for {invite.member.email}</p>
+            <p className="mt-1 text-sm text-emerald-800">
+              Share this link with them. They must sign up or sign in using the same email address.
+            </p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Invite link</label>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700 break-all">
+              {invite.inviteUrl}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={handleCopyInvite}>
+              Copy link
+            </Button>
+            <Button type="button" variant="primary" onClick={handleClose}>
+              Done
+            </Button>
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         <Input
           label="Name"
           value={name}
@@ -90,10 +146,11 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
             Cancel
           </Button>
           <Button type="submit" variant="primary" disabled={isSubmitting}>
-            {isSubmitting ? 'Adding...' : 'Add Member'}
+            {isSubmitting ? 'Creating invite...' : 'Create Invite'}
           </Button>
         </div>
       </form>
+      )}
     </Modal>
   );
 }

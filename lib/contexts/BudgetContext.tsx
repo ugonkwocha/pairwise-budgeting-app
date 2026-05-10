@@ -15,6 +15,7 @@ import {
   BudgetSummary,
   CategorySpending,
   IncomeBreakdown,
+  MemberInviteResult,
 } from '@/types';
 import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
@@ -55,6 +56,7 @@ export interface BudgetContextType {
   deleteIncomeSource: (sourceId: string) => void;
   setHousehold: (household: Household) => void;
   addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
+  inviteUser: (user: Omit<User, 'id' | 'createdAt'>) => Promise<MemberInviteResult>;
   updateUser: (userId: string, updates: Partial<User>) => void;
   deleteUser: (userId: string) => void;
   completeOnboarding: (
@@ -253,6 +255,22 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       .catch((err) => setError(getErrorMessage(err, 'Unable to add member')));
   }, [data]);
 
+  const inviteUser = useCallback(async (user: Omit<User, 'id' | 'createdAt'>) => {
+    if (!data) {
+      throw new Error('No household is loaded');
+    }
+
+    try {
+      const invite = await budgetRepository.createHouseholdInvite(user, data);
+      setData((prev) => (prev ? { ...prev, users: [...prev.users, invite.member] } : prev));
+      return invite;
+    } catch (err) {
+      const message = getErrorMessage(err, 'Unable to invite member');
+      setError(message);
+      throw new Error(message);
+    }
+  }, [data]);
+
   const updateUser = useCallback((userId: string, updates: Partial<User>) => {
     budgetRepository.updateBudgetMember(userId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, users: prev.users.map((u) => u.id === userId ? updated : u) } : prev)))
@@ -335,6 +353,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     deleteIncomeSource,
     setHousehold: setHouseholdData,
     addUser: addUserData,
+    inviteUser,
     updateUser,
     deleteUser,
     completeOnboarding,

@@ -38,7 +38,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isPublicPath = PUBLIC_PATHS.has(pathname);
+  const isInvitePath = pathname.startsWith('/invite/');
+  const isPublicPath = PUBLIC_PATHS.has(pathname) || isInvitePath;
   const authCode = request.nextUrl.searchParams.get('code');
 
   if (authCode && pathname !== '/auth/callback') {
@@ -54,7 +55,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && isPublicPath && pathname !== '/reset-password') {
+  if (user && PUBLIC_PATHS.has(pathname) && pathname !== '/reset-password') {
     const appUrl = request.nextUrl.clone();
     appUrl.pathname = '/';
     return NextResponse.redirect(appUrl);

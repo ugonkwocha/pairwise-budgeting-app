@@ -17,6 +17,13 @@ export interface User {
   createdAt: string;
 }
 
+export interface MemberInviteResult {
+  member: User;
+  inviteToken: string;
+  inviteUrl: string;
+  expiresAt: string;
+}
+
 export interface IncomeSource {
   id: string;
   name: string;

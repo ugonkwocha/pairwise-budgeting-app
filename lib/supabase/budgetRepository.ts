@@ -14,6 +14,7 @@ import type {
   SavingsContribution,
   SavingsGoal,
   User,
+  MemberInviteResult,
 } from '@/types';
 
 function freshInitialStorage(): BudgetStorageSchema {
@@ -410,6 +411,46 @@ export async function insertBudgetMember(user: Omit<User, 'id' | 'createdAt'>, d
       .single()
   );
   return toUser(row);
+}
+
+export async function createHouseholdInvite(
+  user: Omit<User, 'id' | 'createdAt'>,
+  data: BudgetStorageSchema
+): Promise<MemberInviteResult> {
+  requireHouseholdId(data);
+  const row = await throwIfError(
+    await (createClient() as any)
+      .rpc('create_household_invite', {
+        member_name: user.name,
+        member_email: user.email,
+        member_role: user.role,
+      })
+      .single()
+  ) as {
+    member_id: string;
+    household_id: string;
+    name: string;
+    email: string;
+    role: 'primary' | 'member';
+    created_at: string;
+    invite_token: string;
+    invite_expires_at: string;
+  };
+
+  const inviteToken = row.invite_token;
+  return {
+    member: {
+      id: row.member_id,
+      householdId: row.household_id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      createdAt: row.created_at,
+    },
+    inviteToken,
+    inviteUrl: `${window.location.origin}/invite/${inviteToken}`,
+    expiresAt: row.invite_expires_at,
+  };
 }
 
 export async function updateBudgetMember(userId: string, updates: Partial<User>): Promise<User> {

@@ -33,7 +33,9 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.assign('/');
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next') || '/';
+      window.location.assign(next.startsWith('/') ? next : '/');
     } catch (err) {
       setError('An unexpected error occurred');
       console.error(err);
