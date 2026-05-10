@@ -6,8 +6,10 @@ import Navbar from '@/components/navigation/Navbar';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { onboardingCompleted } = useBudget();
-  const shouldShowShell = onboardingCompleted && pathname !== '/onboarding';
+  const { isAuthenticated, onboardingCompleted } = useBudget();
+  const authRoutes = ['/login', '/signup', '/forgot-password', '/reset-password'];
+  const isAuthRoute = authRoutes.some((route) => pathname === route);
+  const shouldShowShell = isAuthenticated && onboardingCompleted && !isAuthRoute && pathname !== '/onboarding';
 
   if (!shouldShowShell) {
     return <>{children}</>;

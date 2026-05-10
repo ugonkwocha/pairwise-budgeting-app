@@ -23,17 +23,18 @@ import { useState } from 'react';
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { household, users, onboardingCompleted } = useBudget();
+  const { household, users, isAuthenticated, onboardingCompleted, reload } = useBudget();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
+    await reload();
     router.push('/login');
     router.refresh();
   };
 
-  if (!onboardingCompleted || pathname === '/onboarding') {
+  if (!isAuthenticated || !onboardingCompleted || pathname === '/onboarding') {
     return null;
   }
 
