@@ -16,7 +16,6 @@ Create `.env.local` with:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 For direct SQL migration runs, also provide either:
@@ -96,13 +95,11 @@ npx vercel link --token "$VERCEL_TOKEN"
 npx vercel --token "$VERCEL_TOKEN"
 ```
 
-Use separate Supabase projects for staging and production. Each Vercel environment should have its own values:
+Use separate Supabase projects for staging and production. Each Vercel environment should have its own runtime values:
 
 ```bash
-NEXT_PUBLIC_APP_URL=https://your-environment-domain
 NEXT_PUBLIC_SUPABASE_URL=your_environment_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_environment_supabase_anon_key
-SUPABASE_DB_URL=your_environment_postgres_connection_string
 ```
 
 Supabase Auth redirect URLs must include:
