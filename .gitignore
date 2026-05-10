@@ -51,3 +51,6 @@ yarn.lock
 .vercel.*
 schema.sql
 supabase/.temp/
+
+# Vercel environment pulls
+.env.vercel*.local
