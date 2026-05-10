@@ -23,19 +23,19 @@ export default function MonthNavigation() {
   const isToday = currentMonth === currentMonthNow;
 
   return (
-    <div className="flex items-center justify-between gap-4 bg-white rounded-lg border border-gray-200 p-3 shadow-sm mb-6">
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
       <Button
         variant="secondary"
         size="sm"
         onClick={handlePrevious}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 border-0 shadow-none"
       >
         <span>←</span>
         Previous
       </Button>
 
       <div className="flex items-center gap-3">
-        <h2 className="text-xl font-semibold text-gray-900">
+        <h2 className="text-sm font-semibold text-slate-950 sm:text-base">
           {formatMonthDisplay(currentMonth)}
         </h2>
         {!isToday && (
@@ -53,7 +53,7 @@ export default function MonthNavigation() {
         variant="secondary"
         size="sm"
         onClick={handleNext}
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 border-0 shadow-none"
       >
         Next
         <span>→</span>

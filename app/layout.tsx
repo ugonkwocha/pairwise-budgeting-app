@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { BudgetProvider } from '@/lib/contexts/BudgetContext';
-import Navbar from '@/components/navigation/Navbar';
+import AppShell from '@/components/navigation/AppShell';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,8 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <BudgetProvider>
-          <Navbar />
-          {children}
+          <AppShell>{children}</AppShell>
         </BudgetProvider>
       </body>
     </html>
