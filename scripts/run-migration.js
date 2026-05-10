@@ -57,6 +57,13 @@ async function runMigration() {
     await client.connect();
     console.log('✅ Connected successfully');
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS public.schema_migrations (
+        filename text PRIMARY KEY,
+        applied_at timestamptz NOT NULL DEFAULT now()
+      )
+    `);
+
     const migrationsDir = path.join(__dirname, '../supabase/migrations');
 
     if (!fs.existsSync(migrationsDir)) {
@@ -74,11 +81,53 @@ async function runMigration() {
 
     console.log(`📋 Running ${migrationFiles.length} migration(s)...`);
 
+    const hasExistingSchema = await client.query(`
+      SELECT to_regclass('public.profiles') IS NOT NULL AS exists
+    `);
+
+    const appliedCount = await client.query('SELECT count(*)::int AS count FROM public.schema_migrations');
+    const shouldBaselineExistingSchema = hasExistingSchema.rows[0]?.exists && appliedCount.rows[0]?.count === 0;
+
+    if (shouldBaselineExistingSchema) {
+      const baselineFiles = migrationFiles.filter((file) => file < '004_');
+      for (const file of baselineFiles) {
+        await client.query(
+          'INSERT INTO public.schema_migrations (filename) VALUES ($1) ON CONFLICT DO NOTHING',
+          [file]
+        );
+      }
+      if (baselineFiles.length > 0) {
+        console.log(`ℹ️  Baseline marked ${baselineFiles.length} existing migration(s) as applied`);
+      }
+    }
+
     for (const file of migrationFiles) {
+      const alreadyApplied = await client.query(
+        'SELECT 1 FROM public.schema_migrations WHERE filename = $1',
+        [file]
+      );
+
+      if (alreadyApplied.rowCount > 0) {
+        console.log(`⏭️  ${file} already applied`);
+        continue;
+      }
+
       const migrationPath = path.join(migrationsDir, file);
       const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
       console.log(`➡️  ${file}`);
-      await client.query(migrationSql);
+
+      await client.query('BEGIN');
+      try {
+        await client.query(migrationSql);
+        await client.query(
+          'INSERT INTO public.schema_migrations (filename) VALUES ($1)',
+          [file]
+        );
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      }
     }
 
     console.log('✅ Migration completed successfully');

@@ -249,102 +249,33 @@ export async function createHouseholdSetup(
 
   if (error || !user) throw new Error('You must be signed in to create a household');
 
-  const createdHousehold = await throwIfError(
-    await supabase
-      .from('households')
-      .insert({
-        name: household.name,
-        currency: household.currency,
-        created_by_user_id: user.id,
-      })
-      .select('*')
-      .single()
-  );
-  if (!createdHousehold) throw new Error('Household was not created');
-
   await throwIfError(
-    await supabase.from('household_members').insert({
-      household_id: createdHousehold.id,
-      user_id: user.id,
-      role: 'primary',
-      status: 'active',
+    await (supabase as any).rpc('create_household_setup', {
+      household_name: household.name,
+      household_currency: household.currency,
+      budget_month: month,
+      members: users.map((member) => ({
+        name: member.name,
+        email: member.email,
+        role: member.role,
+      })),
+      income_sources: incomeSources.map((source) => ({
+        name: source.name,
+        description: source.description || null,
+      })),
+      categories: categories.map((category) => ({
+        name: category.name,
+        monthlyBudget: category.monthlyBudget,
+        carryOverEnabled: category.carryOverEnabled,
+        color: category.color || null,
+        icon: category.icon || null,
+      })),
     })
   );
 
-  const profileName = user.user_metadata?.name || user.email?.split('@')[0] || users[0]?.name || 'Primary member';
-  const memberRows = users
-    .filter((member) => member.name.trim())
-    .map((member, index) => ({
-      household_id: createdHousehold.id,
-      auth_user_id: index === 0 ? user.id : null,
-      name: index === 0 ? member.name || profileName : member.name,
-      email: member.email || (index === 0 ? user.email || '' : ''),
-      role: index === 0 ? 'primary' : member.role,
-    }));
-
-  const createdMembers = await throwIfError(
-    await supabase.from('budget_members' as any).insert(memberRows as any).select('*')
-  );
-
-  const createdSources = incomeSources.length
-    ? await throwIfError(
-        await supabase
-          .from('income_sources')
-          .insert(
-            incomeSources.map((source) => ({
-              household_id: createdHousehold.id,
-              name: source.name,
-              description: source.description || null,
-            })) as any
-          )
-          .select('*')
-      )
-    : [];
-
-  const createdCategories = await throwIfError(
-    await supabase
-      .from('categories')
-      .insert(
-        categories.map((category) => ({
-          household_id: createdHousehold.id,
-          name: category.name,
-          color: category.color || null,
-          needs_or_wants: 'needs',
-          monthly_budget: category.monthlyBudget,
-          carry_over_enabled: category.carryOverEnabled,
-          icon: category.icon || null,
-        })) as any
-      )
-      .select('*')
-  );
-
-  const appCategories = (createdCategories || []).map(toCategory);
-  const createdMonthly = await throwIfError(
-    await supabase
-      .from('monthly_categories')
-      .insert(
-        appCategories.map((category) => ({
-          household_id: createdHousehold.id,
-          category_id: category.id,
-          month,
-          budget: category.monthlyBudget,
-          current_spent: 0,
-          carry_over_amount: 0,
-        })) as any
-      )
-      .select('*')
-  );
-
-  const appUsers = (createdMembers || []).map(toUser);
-
+  const result = await loadBudgetData();
   return {
-    ...freshInitialStorage(),
-    household: toHousehold(createdHousehold),
-    users: appUsers,
-    incomeSources: (createdSources || []).map(toIncomeSource),
-    categories: appCategories,
-    monthlyCategories: (createdMonthly || []).map((row: any) => toMonthlyCategory(row, appCategories)),
-    onboardingCompleted: true,
+    ...result.data,
     currentMonth: month,
   };
 }

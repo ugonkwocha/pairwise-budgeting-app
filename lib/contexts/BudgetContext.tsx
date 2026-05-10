@@ -84,6 +84,14 @@ function emptySummary(): BudgetSummary {
   };
 }
 
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
+    return (err as any).message;
+  }
+  return fallback;
+}
+
 export function BudgetProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<BudgetStorageSchema | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -99,7 +107,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       setData(result.data);
       setIsAuthenticated(result.isAuthenticated);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load budget data');
+      setError(getErrorMessage(err, 'Unable to load budget data'));
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +155,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
         .then((created) => {
           setData((prev) => (prev ? { ...prev, alerts: [...prev.alerts, created] } : prev));
         })
-        .catch((err) => setError(err instanceof Error ? err.message : 'Unable to create alert'));
+        .catch((err) => setError(getErrorMessage(err, 'Unable to create alert')));
     });
   }, [categorySpending, budgetSummary, data?.alerts, data?.onboardingCompleted, data?.household]);
 
@@ -155,38 +163,38 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     if (!data) return;
     budgetRepository.insertIncome(income, data)
       .then((created) => setData((prev) => (prev ? { ...prev, incomes: [...prev.incomes, created] } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add income'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to add income')));
   }, [data]);
 
   const updateIncome = useCallback((incomeId: string, updates: Partial<Income>) => {
     budgetRepository.updateIncomeRow(incomeId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, incomes: prev.incomes.map((i) => i.id === incomeId ? updated : i) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update income'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update income')));
   }, []);
 
   const deleteIncome = useCallback((incomeId: string) => {
     budgetRepository.deleteIncomeRow(incomeId)
       .then(() => setData((prev) => (prev ? { ...prev, incomes: prev.incomes.filter((i) => i.id !== incomeId) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete income'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to delete income')));
   }, []);
 
   const addExpense = useCallback((expense: Omit<Expense, 'id' | 'createdAt'>) => {
     if (!data) return;
     budgetRepository.insertExpense(expense, data)
       .then((created) => setData((prev) => (prev ? { ...prev, expenses: [...prev.expenses, created] } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add expense'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to add expense')));
   }, [data]);
 
   const updateExpense = useCallback((expenseId: string, updates: Partial<Expense>) => {
     budgetRepository.updateExpenseRow(expenseId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, expenses: prev.expenses.map((e) => e.id === expenseId ? updated : e) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update expense'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update expense')));
   }, []);
 
   const deleteExpense = useCallback((expenseId: string) => {
     budgetRepository.deleteExpenseRow(expenseId)
       .then(() => setData((prev) => (prev ? { ...prev, expenses: prev.expenses.filter((e) => e.id !== expenseId) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete expense'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to delete expense')));
   }, []);
 
   const addCategory = useCallback((_category: Omit<Category, 'id' | 'createdAt'>) => {
@@ -196,13 +204,13 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   const updateCategory = useCallback((categoryId: string, updates: Partial<Category>) => {
     budgetRepository.updateCategoryRow(categoryId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, categories: prev.categories.map((c) => c.id === categoryId ? updated : c) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update category'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update category')));
   }, []);
 
   const updateMonthlyCategory = useCallback((monthlyCategoryId: string, updates: Partial<MonthlyCategory>) => {
     budgetRepository.updateMonthlyCategoryRow(monthlyCategoryId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, monthlyCategories: prev.monthlyCategories.map((mc) => mc.id === monthlyCategoryId ? updated : mc) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update monthly budget'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update monthly budget')));
   }, []);
 
   const addSavingsGoal = useCallback((_goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -217,44 +225,44 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     if (!data) return;
     budgetRepository.insertIncomeSource(source, data)
       .then((created) => setData((prev) => (prev ? { ...prev, incomeSources: [...prev.incomeSources, created] } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add income source'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to add income source')));
   }, [data]);
 
   const updateIncomeSource = useCallback((sourceId: string, updates: Partial<IncomeSource>) => {
     budgetRepository.updateIncomeSourceRow(sourceId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, incomeSources: prev.incomeSources.map((s) => s.id === sourceId ? updated : s) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update income source'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update income source')));
   }, []);
 
   const deleteIncomeSource = useCallback((sourceId: string) => {
     budgetRepository.deleteIncomeSourceRow(sourceId)
       .then(() => setData((prev) => (prev ? { ...prev, incomeSources: prev.incomeSources.filter((s) => s.id !== sourceId) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete income source'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to delete income source')));
   }, []);
 
   const setHouseholdData = useCallback((household: Household) => {
     budgetRepository.updateHouseholdRow(household)
       .then((updated) => setData((prev) => (prev ? { ...prev, household: updated } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update household'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update household')));
   }, []);
 
   const addUserData = useCallback((user: Omit<User, 'id' | 'createdAt'>) => {
     if (!data) return;
     budgetRepository.insertBudgetMember(user, data)
       .then((created) => setData((prev) => (prev ? { ...prev, users: [...prev.users, created] } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add member'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to add member')));
   }, [data]);
 
   const updateUser = useCallback((userId: string, updates: Partial<User>) => {
     budgetRepository.updateBudgetMember(userId, updates)
       .then((updated) => setData((prev) => (prev ? { ...prev, users: prev.users.map((u) => u.id === userId ? updated : u) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update member'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to update member')));
   }, []);
 
   const deleteUser = useCallback((userId: string) => {
     budgetRepository.deleteBudgetMember(userId)
       .then(() => setData((prev) => (prev ? { ...prev, users: prev.users.filter((u) => u.id !== userId) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete member'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to delete member')));
   }, []);
 
   const completeOnboarding = useCallback((
@@ -266,13 +274,13 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     const month = data?.currentMonth || new Date().toISOString().slice(0, 7);
     budgetRepository.createHouseholdSetup(household, users, incomeSources, categories, month)
       .then((createdData) => setData(createdData))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to complete onboarding'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to complete onboarding')));
   }, [data?.currentMonth]);
 
   const dismissAlert = useCallback((alertId: string) => {
     budgetRepository.dismissAlertRow(alertId)
       .then(() => setData((prev) => (prev ? { ...prev, alerts: prev.alerts.map((a) => a.id === alertId ? { ...a, dismissed: true } : a) } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to dismiss alert'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to dismiss alert')));
   }, []);
 
   const setCurrentMonthData = useCallback((month: string) => {
@@ -287,7 +295,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
 
     budgetRepository.createMonthlyBudgets(month, data.categories, carryOvers, data)
       .then((created) => setData((prev) => (prev ? { ...prev, monthlyCategories: [...prev.monthlyCategories, ...created] } : prev)))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to create monthly budgets'));
+      .catch((err) => setError(getErrorMessage(err, 'Unable to create monthly budgets')));
   }, [data]);
 
   if (!data || isLoading) {
