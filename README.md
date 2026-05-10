@@ -84,8 +84,8 @@ Migrations are plain SQL files in `supabase/migrations` and are applied in sorte
 
 This app uses two long-lived branches:
 
-- `develop` deploys to Vercel Preview/Staging.
-- `main` deploys to Vercel Production.
+- `develop` deploys to Vercel Preview/Staging at `https://staging-budget.ugonkwocha.com`.
+- `main` deploys to Vercel Production at `https://budget.ugonkwocha.com`.
 
 Use the separate PairWise Vercel account for this project. If another Vercel account is logged in globally, do not run plain `vercel` commands. Use a token from the PairWise Vercel account instead:
 
@@ -106,6 +106,12 @@ Supabase Auth redirect URLs must include:
 
 ```text
 https://your-environment-domain/auth/callback
+```
+
+For staging, use:
+
+```text
+https://staging-budget.ugonkwocha.com/auth/callback
 ```
 
 Apply migrations to staging first:
