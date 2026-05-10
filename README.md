@@ -80,3 +80,37 @@ npm run migrate
 ```
 
 Migrations are plain SQL files in `supabase/migrations` and are applied in sorted filename order by `scripts/run-migration.js`.
+
+## Vercel Environments
+
+This app uses two long-lived branches:
+
+- `develop` deploys to Vercel Preview/Staging.
+- `main` deploys to Vercel Production.
+
+Use separate Supabase projects for staging and production. Each Vercel environment should have its own values:
+
+```bash
+NEXT_PUBLIC_APP_URL=https://your-environment-domain
+NEXT_PUBLIC_SUPABASE_URL=your_environment_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_environment_supabase_anon_key
+SUPABASE_DB_URL=your_environment_postgres_connection_string
+```
+
+Supabase Auth redirect URLs must include:
+
+```text
+https://your-environment-domain/auth/callback
+```
+
+Apply migrations to staging first:
+
+```bash
+SUPABASE_DB_URL="staging_database_url" npm run migrate
+```
+
+After staging is verified, merge `develop` into `main` and apply the same migrations to production:
+
+```bash
+SUPABASE_DB_URL="production_database_url" npm run migrate
+```
