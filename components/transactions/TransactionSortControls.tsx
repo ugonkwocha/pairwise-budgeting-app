@@ -30,15 +30,15 @@ export function TransactionSortControls({ sort, onChange }: TransactionSortContr
   };
 
   return (
-    <div className="flex items-center gap-3 bg-white p-4 rounded-lg border border-gray-200">
-      <label htmlFor="sort-field" className="text-sm font-medium text-gray-700">
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-4">
+      <label htmlFor="sort-field" className="text-sm font-semibold text-slate-700">
         Sort by:
       </label>
       <select
         id="sort-field"
         value={sort.field}
         onChange={handleFieldChange}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
       >
         {SORT_FIELDS.map((field) => (
           <option key={field.value} value={field.value}>
@@ -49,7 +49,7 @@ export function TransactionSortControls({ sort, onChange }: TransactionSortContr
 
       <button
         onClick={handleDirectionToggle}
-        className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-2"
+        className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
         title={sort.direction === 'asc' ? 'Ascending' : 'Descending'}
       >
         {sort.direction === 'asc' ? '↑' : '↓'} {sort.direction === 'asc' ? 'Ascending' : 'Descending'}

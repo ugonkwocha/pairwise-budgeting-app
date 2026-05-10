@@ -33,7 +33,7 @@ export function TransactionList({
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="h-24 bg-gray-200 rounded-lg animate-pulse"
+            className="h-24 animate-pulse rounded-lg bg-slate-200"
           />
         ))}
       </div>
@@ -43,9 +43,8 @@ export function TransactionList({
   if (transactions.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-5xl mb-4">📭</div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No transactions found</h3>
-        <p className="text-gray-600">
+        <h3 className="mb-2 text-lg font-semibold text-slate-950">No transactions found</h3>
+        <p className="text-sm text-slate-500">
           Try adjusting your filters or check back later.
         </p>
       </div>
@@ -55,7 +54,7 @@ export function TransactionList({
   return (
     <div className="space-y-3">
       {/* Result count */}
-      <div className="text-sm text-gray-600 mb-4">
+      <div className="mb-4 text-sm font-medium text-slate-500">
         Showing {displayedTransactions.length} of {transactions.length} transactions
       </div>
 
@@ -74,7 +73,7 @@ export function TransactionList({
       {hasMore && (
         <button
           onClick={handleLoadMore}
-          className="w-full mt-6 px-4 py-3 border border-gray-300 rounded-lg text-gray-900 font-medium hover:bg-gray-50 transition-colors"
+          className="mt-6 w-full rounded-lg border border-slate-200 px-4 py-3 font-semibold text-slate-900 transition-colors hover:bg-slate-50"
         >
           Load More ({transactions.length - displayCount} remaining)
         </button>

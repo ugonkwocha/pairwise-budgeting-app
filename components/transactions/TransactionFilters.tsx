@@ -136,11 +136,10 @@ export function TransactionFilters({
   ].reduce((a, b) => a + b, 0);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="flex items-center justify-between border-b border-slate-100 p-4">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">Filters</h3>
+          <h3 className="font-semibold text-slate-950">Filters</h3>
           {activeFilterCount > 0 && (
             <Badge variant="info" size="sm">
               {activeFilterCount} active
@@ -150,7 +149,7 @@ export function TransactionFilters({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowDetails(!showDetails)}
-            className="text-sm text-gray-600 hover:text-gray-900"
+            className="text-sm font-semibold text-slate-500 hover:text-slate-950"
           >
             {showDetails ? 'Hide' : 'Show'}
           </button>
@@ -165,9 +164,8 @@ export function TransactionFilters({
       {/* Filters */}
       {showDetails && (
         <div className="p-4 space-y-4">
-          {/* Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Type</label>
             <div className="flex gap-2">
               {(['all', 'income', 'expense'] as const).map((type) => (
                 <button
@@ -175,8 +173,8 @@ export function TransactionFilters({
                   onClick={() => handleTypeChange(type)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     filters.type === type || (!filters.type && type === 'all')
-                      ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white border border-blue-600'
+                      : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -185,19 +183,18 @@ export function TransactionFilters({
             </div>
           </div>
 
-          {/* Date Range Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Date Range</label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label htmlFor="start-month" className="text-xs text-gray-600">
+                <label htmlFor="start-month" className="text-xs text-slate-500">
                   From
                 </label>
                 <select
                   id="start-month"
                   value={filters.dateRange?.start || ''}
                   onChange={handleStartMonthChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="">Select start month</option>
                   {allMonths.map((month) => (
@@ -208,14 +205,14 @@ export function TransactionFilters({
                 </select>
               </div>
               <div>
-                <label htmlFor="end-month" className="text-xs text-gray-600">
+                <label htmlFor="end-month" className="text-xs text-slate-500">
                   To
                 </label>
                 <select
                   id="end-month"
                   value={filters.dateRange?.end || ''}
                   onChange={handleEndMonthChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
                   <option value="">Select end month</option>
                   {allMonths.map((month) => (
@@ -228,9 +225,8 @@ export function TransactionFilters({
             </div>
           </div>
 
-          {/* Category/Source Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               Categories & Sources
             </label>
             <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
@@ -242,7 +238,7 @@ export function TransactionFilters({
                     onChange={() => handleCategoryToggle(cat.id)}
                     className="rounded"
                   />
-                  <span className="text-gray-700">{cat.name}</span>
+                  <span className="text-slate-700">{cat.name}</span>
                 </label>
               ))}
               {incomeSources.map((source) => (
@@ -253,16 +249,15 @@ export function TransactionFilters({
                     onChange={() => handleCategoryToggle(source.id)}
                     className="rounded"
                   />
-                  <span className="text-gray-700">{source.name}</span>
+                  <span className="text-slate-700">{source.name}</span>
                 </label>
               ))}
             </div>
           </div>
 
-          {/* User Filter */}
           {users.length > 1 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Members</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Members</label>
               <div className="space-y-2">
                 {users.map((user) => (
                   <label key={user.id} className="flex items-center gap-2 text-sm">
@@ -272,16 +267,15 @@ export function TransactionFilters({
                       onChange={() => handleUserToggle(user.id)}
                       className="rounded"
                     />
-                    <span className="text-gray-700">{user.name}</span>
+                    <span className="text-slate-700">{user.name}</span>
                   </label>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Amount Range Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Amount Range</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Amount Range</label>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <input
@@ -289,7 +283,7 @@ export function TransactionFilters({
                   placeholder="Min amount"
                   value={filters.amountRange?.min || ''}
                   onChange={handleMinAmountChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
               <div>
@@ -298,16 +292,15 @@ export function TransactionFilters({
                   placeholder="Max amount"
                   value={filters.amountRange?.max || ''}
                   onChange={handleMaxAmountChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
             </div>
           </div>
 
-          {/* Needs/Wants Filter (only for expenses) */}
           {(filters.type === 'expense' || filters.type === undefined || !filters.type) && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Needs/Wants</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Needs/Wants</label>
               <div className="flex gap-2">
                 {(['all', 'needs', 'wants'] as const).map((value) => (
                   <button
@@ -315,8 +308,8 @@ export function TransactionFilters({
                     onClick={() => handleNeedsWantsChange(value)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       filters.needsOrWants === value || (!filters.needsOrWants && value === 'all')
-                        ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                        : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                        ? 'bg-blue-600 text-white border border-blue-600'
+                        : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
                     }`}
                   >
                     {value.charAt(0).toUpperCase() + value.slice(1)}
@@ -326,9 +319,8 @@ export function TransactionFilters({
             </div>
           )}
 
-          {/* Search Filter */}
           <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="search" className="block text-sm font-semibold text-slate-700 mb-2">
               Search
             </label>
             <input
@@ -337,7 +329,7 @@ export function TransactionFilters({
               placeholder="Search by category, member, or notes..."
               value={filters.searchText || ''}
               onChange={handleSearchChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>

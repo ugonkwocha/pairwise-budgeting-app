@@ -9,6 +9,7 @@ import { EditIncomeModal } from '@/components/income/EditIncomeModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
 import type { Income } from '@/types';
+import { FiPlus, FiTrendingUp } from 'react-icons/fi';
 
 export default function IncomePage() {
   const { incomes, currentMonth, household, deleteIncome } = useBudget();
@@ -19,6 +20,7 @@ export default function IncomePage() {
 
   const monthIncomes = incomes.filter((i) => i.date.startsWith(currentMonth));
   const totalIncome = monthIncomes.reduce((sum, i) => sum + i.amount, 0);
+  const currency = household?.currency === 'NGN' ? '₦' : '$';
 
   const handleEditIncome = (income: Income) => {
     setSelectedIncome(income);
@@ -31,63 +33,74 @@ export default function IncomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Income</h1>
-            <p className="text-gray-600 mt-2">Track household income sources</p>
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7">
+          <div className="mb-6 text-xs font-medium text-slate-400">
+            Dashboard <span className="mx-2">›</span> Income
           </div>
-          <Button onClick={() => setIsAddModalOpen(true)}>+ Add Income</Button>
+          <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-slate-950">Income</h1>
+              <p className="mt-6 text-base font-medium text-slate-950">Track household income sources</p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="min-w-0 sm:w-[520px]">
+                <MonthNavigation />
+              </div>
+              <Button onClick={() => setIsAddModalOpen(true)} className="inline-flex items-center gap-2">
+                <FiPlus aria-hidden="true" />
+                Add Income
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <MonthNavigation />
-
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Total Income This Month</CardTitle>
+        <Card className="mb-7 border-0 bg-teal-50">
+          <CardHeader className="mb-3 flex flex-row items-center justify-between">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Income This Month</CardTitle>
+            <span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-teal-600 shadow-sm">
+              <FiTrendingUp className="h-4 w-4" aria-hidden="true" />
+            </span>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-green-600">
-              {household?.currency === 'NGN' ? '₦' : '$'}
+            <div className="text-3xl font-semibold tracking-tight text-slate-950">
+              {currency}
               {totalIncome.toFixed(2)}
             </div>
+            <p className="mt-3 text-xs font-semibold text-teal-600">{monthIncomes.length} entries this month</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Income Entries</CardTitle>
+        <Card className="border-slate-200 bg-white p-0">
+          <CardHeader className="mb-0 border-b border-slate-100 p-5">
+            <CardTitle className="text-sm uppercase tracking-wide">Income Entries</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-5">
             {monthIncomes.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">No income recorded yet. Add one to get started!</p>
+              <p className="py-10 text-center text-sm text-slate-500">No income recorded yet. Add one to get started.</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {monthIncomes
                   .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                   .map((income) => (
                     <div
                       key={income.id}
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                      className="flex flex-col gap-4 rounded-lg bg-slate-50 px-4 py-3 transition hover:bg-slate-100 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
-                        <div className="font-medium text-gray-900">{income.sourceName}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="font-medium text-slate-900">{income.sourceName}</div>
+                        <div className="mt-1 text-sm text-slate-500">
                           {new Date(income.date).toLocaleDateString()} • {income.userName}
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="font-bold text-gray-900 min-w-24 text-right">
-                          {household?.currency === 'NGN' ? '₦' : '$'}
+                      <div className="flex items-center justify-between gap-4 sm:justify-end">
+                        <div className="min-w-24 text-right font-semibold text-slate-950">
+                          {currency}
                           {income.amount.toFixed(2)}
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEditIncome(income)}
-                          >
+                          <Button variant="ghost" size="sm" onClick={() => handleEditIncome(income)}>
                             Edit
                           </Button>
                           <Button
@@ -128,7 +141,7 @@ export default function IncomePage() {
           }}
           onConfirm={() => deleteIncome(selectedIncome.id)}
           title="Delete Income"
-          message={`Are you sure you want to delete this ${selectedIncome.sourceName} income of ${household?.currency === 'NGN' ? '₦' : '$'}${selectedIncome.amount.toFixed(2)}? This action cannot be undone.`}
+          message={`Are you sure you want to delete this ${selectedIncome.sourceName} income of ${currency}${selectedIncome.amount.toFixed(2)}? This action cannot be undone.`}
         />
       )}
     </div>

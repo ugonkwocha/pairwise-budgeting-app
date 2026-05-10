@@ -13,12 +13,11 @@ export function TransactionListItem({ transaction, currency }: TransactionListIt
   const [showNotes, setShowNotes] = useState(false);
 
   const isIncome = transaction.type === 'income';
-  const amountColor = isIncome ? 'text-green-600' : 'text-red-600';
+  const amountColor = isIncome ? 'text-teal-600' : 'text-red-600';
   const amountSign = isIncome ? '+' : '-';
 
   return (
-    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
-      {/* Header with badges */}
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {isIncome ? (
@@ -40,22 +39,20 @@ export function TransactionListItem({ transaction, currency }: TransactionListIt
             </Badge>
           )}
         </div>
-        <div className={`text-lg font-bold ${amountColor}`}>
+        <div className={`text-lg font-semibold ${amountColor}`}>
           {amountSign}
           {currency}
           {transaction.amount.toFixed(2)}
         </div>
       </div>
 
-      {/* Category/Source and member info */}
       <div className="mb-2">
-        <div className="font-semibold text-gray-900">{transaction.categoryOrSource}</div>
-        <div className="text-sm text-gray-600">
+        <div className="font-semibold text-slate-950">{transaction.categoryOrSource}</div>
+        <div className="text-sm text-slate-500">
           {transaction.userName} · {new Date(transaction.date).toLocaleDateString()}
         </div>
       </div>
 
-      {/* Notes section (if present) */}
       {transaction.notes && (
         <>
           {!showNotes && (
@@ -67,12 +64,12 @@ export function TransactionListItem({ transaction, currency }: TransactionListIt
             </button>
           )}
           {showNotes && (
-            <div className="mt-3 p-2 bg-white border border-gray-200 rounded text-sm text-gray-700">
+            <div className="mt-3 rounded border border-slate-200 bg-white p-2 text-sm text-slate-700">
               <div className="flex justify-between items-start mb-1">
-                <span className="font-semibold text-gray-900">Notes</span>
+                <span className="font-semibold text-slate-950">Notes</span>
                 <button
                   onClick={() => setShowNotes(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs text-slate-500 hover:text-slate-700"
                 >
                   Hide
                 </button>

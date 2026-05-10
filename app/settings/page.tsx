@@ -77,61 +77,66 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600 mt-2">Manage your household, members, and income sources</p>
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7">
+          <div className="mb-6 text-xs font-medium text-slate-400">
+            Dashboard <span className="mx-2">›</span> Settings
+          </div>
+          <div className="border-b border-slate-200 pb-6">
+            <h1 className="text-2xl font-semibold text-slate-950">Settings</h1>
+            <p className="mt-6 text-base font-medium text-slate-950">Manage your household, members, and income sources</p>
+          </div>
         </div>
 
-        {/* Household Information */}
-        <Card className="mb-6">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Household Information</CardTitle>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_1fr]">
+        <Card className="border-slate-200 bg-white">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+            <CardTitle className="text-sm uppercase tracking-wide">Household Information</CardTitle>
             <Button variant="secondary" size="sm" onClick={() => setIsEditHouseholdOpen(true)}>
               Edit
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-5">
               <div>
-                <div className="text-sm text-gray-600">Name</div>
-                <div className="text-lg font-medium text-gray-900">{household.name}</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Name</div>
+                <div className="mt-2 text-lg font-semibold text-slate-950">{household.name}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Currency</div>
-                <div className="text-lg font-medium text-gray-900">{household.currency}</div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Currency</div>
+                <div className="mt-2 text-lg font-semibold text-slate-950">{household.currency}</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Members */}
-        <Card className="mb-6">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Members</CardTitle>
+        <div className="space-y-6">
+        <Card className="border-slate-200 bg-white">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+            <CardTitle className="text-sm uppercase tracking-wide">Members</CardTitle>
             <Button variant="primary" size="sm" onClick={() => setIsAddUserOpen(true)}>
-              + Add Member
+              Add Member
             </Button>
           </CardHeader>
           <CardContent>
             {users.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">No members yet. Add one to get started!</p>
+              <p className="py-8 text-center text-sm text-slate-500">No members yet. Add one to get started.</p>
             ) : (
               <div className="space-y-3">
                 {users.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    className="flex flex-col gap-4 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <div className="font-medium text-gray-900">{user.name}</div>
+                        <div className="font-medium text-slate-900">{user.name}</div>
                         <Badge variant={user.role === 'primary' ? 'success' : 'default'} size="sm">
                           {user.role}
                         </Badge>
                       </div>
-                      <div className="text-sm text-gray-600 mt-1">{user.email}</div>
+                      <div className="mt-1 text-sm text-slate-500">{user.email}</div>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
@@ -165,28 +170,27 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Income Sources */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Income Sources</CardTitle>
+        <Card className="border-slate-200 bg-white">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+            <CardTitle className="text-sm uppercase tracking-wide">Income Sources</CardTitle>
             <Button variant="primary" size="sm" onClick={() => setIsAddSourceOpen(true)}>
-              + Add Source
+              Add Source
             </Button>
           </CardHeader>
           <CardContent>
             {incomeSources.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">No income sources yet. Add one to get started!</p>
+              <p className="py-8 text-center text-sm text-slate-500">No income sources yet. Add one to get started.</p>
             ) : (
               <div className="space-y-3">
                 {incomeSources.map((source) => (
                   <div
                     key={source.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    className="flex flex-col gap-4 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">{source.name}</div>
+                      <div className="font-medium text-slate-900">{source.name}</div>
                       {source.description && (
-                        <div className="text-sm text-gray-600 mt-1">{source.description}</div>
+                        <div className="mt-1 text-sm text-slate-500">{source.description}</div>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -224,6 +228,8 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+        </div>
+        </div>
       </div>
 
       {/* Modals */}

@@ -128,12 +128,16 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Analytics & Reports</h1>
-          <p className="text-gray-600 mt-2">Detailed spending analysis, trends, and financial insights</p>
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7">
+          <div className="mb-6 text-xs font-medium text-slate-400">
+            Dashboard <span className="mx-2">›</span> Analytics
+          </div>
+          <div className="border-b border-slate-200 pb-6">
+            <h1 className="text-2xl font-semibold text-slate-950">Analytics</h1>
+            <p className="mt-6 text-base font-medium text-slate-950">Detailed spending analysis, trends, and financial insights</p>
+          </div>
         </div>
 
         {/* Time Range Selector */}
@@ -144,7 +148,6 @@ export default function AnalyticsPage() {
           <Card className="mb-8 border-amber-200 bg-amber-50">
             <CardContent className="pt-6">
               <div className="text-center">
-                <div className="text-5xl mb-3">📭</div>
                 <h3 className="text-lg font-semibold text-amber-900 mb-2">No Data Available</h3>
                 <p className="text-amber-800">
                   No transactions found in the selected period. Add expenses or income to see analytics.
@@ -157,57 +160,57 @@ export default function AnalyticsPage() {
         {analytics.hasData && (
           <>
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <Card>
+            <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+              <Card className="border-0 bg-teal-50">
                 <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Avg Monthly Income</div>
-                    <div className="text-2xl font-bold text-green-600">
+                  <div>
+                    <div className="mb-7 text-xs font-semibold uppercase tracking-wide text-slate-500">Avg Monthly Income</div>
+                    <div className="text-2xl font-semibold text-slate-950">
                       ${quickStats.avgIncome.toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="mt-3 text-xs font-semibold text-teal-600">
                       Total: ${quickStats.totalIncome.toFixed(2)}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-0 bg-orange-50">
                 <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Avg Monthly Spending</div>
-                    <div className="text-2xl font-bold text-red-600">
+                  <div>
+                    <div className="mb-7 text-xs font-semibold uppercase tracking-wide text-slate-500">Avg Monthly Spending</div>
+                    <div className="text-2xl font-semibold text-slate-950">
                       ${quickStats.avgSpending.toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="mt-3 text-xs font-semibold text-orange-600">
                       Total: ${quickStats.totalSpending.toFixed(2)}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-0 bg-blue-50">
                 <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Total Saved</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div>
+                    <div className="mb-7 text-xs font-semibold uppercase tracking-wide text-slate-500">Total Saved</div>
+                    <div className="text-2xl font-semibold text-slate-950">
                       ${quickStats.totalSaved.toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-500 mt-2">
+                    <div className="mt-3 text-xs font-semibold text-blue-600">
                       Savings Rate: {quickStats.savingsRate.toFixed(1)}%
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="border-0 bg-violet-50">
                 <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Budget Health</div>
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div>
+                    <div className="mb-7 text-xs font-semibold uppercase tracking-wide text-slate-500">Budget Health</div>
+                    <div className="text-2xl font-semibold text-slate-950">
                       {analytics.budgetHealth.score}/100
                     </div>
-                    <div className="text-xs text-gray-500 mt-2 capitalize">
+                    <div className="mt-3 text-xs font-semibold text-violet-600 capitalize">
                       {analytics.budgetHealth.status}
                     </div>
                   </div>
@@ -218,7 +221,7 @@ export default function AnalyticsPage() {
             {/* Spending Trends Chart */}
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-gray-900">Spending Trends</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Spending Trends</h2>
               </CardHeader>
               <CardContent>
                 <SpendingTrendsChart data={analytics.spendingTrends} />
@@ -228,7 +231,7 @@ export default function AnalyticsPage() {
             {/* Income Trends Chart */}
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-gray-900">Income Trends</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Income Trends</h2>
               </CardHeader>
               <CardContent>
                 <IncomeTrendsChart data={analytics.incomeTrends} />
@@ -239,7 +242,7 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
               <Card>
                 <CardHeader>
-                  <h2 className="text-lg font-semibold text-gray-900">Budget Health</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Budget Health</h2>
                 </CardHeader>
                 <CardContent>
                   <BudgetHealthGauge data={analytics.budgetHealth} />
@@ -248,7 +251,7 @@ export default function AnalyticsPage() {
 
               <Card>
                 <CardHeader>
-                  <h2 className="text-lg font-semibold text-gray-900">Needs vs Wants</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Needs vs Wants</h2>
                 </CardHeader>
                 <CardContent>
                   <NeedsVsWantsChart data={analytics.needsWants} />
@@ -259,7 +262,7 @@ export default function AnalyticsPage() {
             {/* Monthly Comparison Chart */}
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-gray-900">Monthly Comparison</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Monthly Comparison</h2>
               </CardHeader>
               <CardContent>
                 <MonthlyComparisonChart data={analytics.monthlyComparison} />
@@ -269,7 +272,7 @@ export default function AnalyticsPage() {
             {/* Category Trends Chart */}
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-gray-900">Category Trends</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Category Trends</h2>
               </CardHeader>
               <CardContent>
                 <CategoryTrendsChart data={analytics.categoryTrends} />
@@ -279,7 +282,7 @@ export default function AnalyticsPage() {
             {/* Spending by User Chart */}
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-gray-900">Spending by Member</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Spending by Member</h2>
               </CardHeader>
               <CardContent>
                 <SpendingByUserChart data={analytics.userSpending} />
@@ -290,23 +293,23 @@ export default function AnalyticsPage() {
             {analytics.topCategories.length > 0 && (
               <Card className="mb-8">
                 <CardHeader>
-                  <h2 className="text-lg font-semibold text-gray-900">Top Spending Categories</h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Top Spending Categories</h2>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {analytics.topCategories.map((category, index) => (
-                      <div key={category.categoryId} className="flex items-center justify-between pb-3 border-b border-gray-200 last:border-b-0">
+                      <div key={category.categoryId} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-b-0">
                         <div className="flex items-center gap-3">
-                          <div className="text-sm font-medium text-gray-900">{index + 1}.</div>
+                          <div className="text-sm font-medium text-slate-950">{index + 1}.</div>
                           <div>
-                            <div className="font-medium text-gray-900">{category.categoryName}</div>
+                            <div className="font-medium text-slate-950">{category.categoryName}</div>
                             <div className="text-xs text-gray-500">
                               {category.percentage.toFixed(1)}% of total spending
                             </div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold text-gray-900">
+                          <div className="font-semibold text-slate-950">
                             ${category.totalSpent.toFixed(2)}
                           </div>
                         </div>
@@ -320,11 +323,11 @@ export default function AnalyticsPage() {
             {/* Export Section */}
             <Card className="mb-8">
               <CardHeader>
-                <h2 className="text-lg font-semibold text-gray-900">Export Data</h2>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Export Data</h2>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-500">
                     Export your analytics and transaction data for further analysis
                   </p>
                   <ExportButton

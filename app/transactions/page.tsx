@@ -16,6 +16,7 @@ import {
 } from '@/lib/utils/transactionUtils';
 import { calculateTransactionStats } from '@/lib/calculations/transactionCalculations';
 import { getCurrentMonth, getPreviousMonth } from '@/lib/utils/monthUtils';
+import { Button } from '@/components/ui/Button';
 
 const DEFAULT_SORT: TransactionSort = {
   field: 'date',
@@ -74,21 +75,23 @@ export default function TransactionsPage() {
   const currency = household?.currency === 'NGN' ? '₦' : '$';
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Transaction History</h1>
-          <p className="text-gray-600 mt-2">View and manage all your income and expense transactions</p>
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7">
+          <div className="mb-6 text-xs font-medium text-slate-400">
+            Dashboard <span className="mx-2">›</span> Transactions
+          </div>
+          <div className="border-b border-slate-200 pb-6">
+            <h1 className="text-2xl font-semibold text-slate-950">Transactions</h1>
+            <p className="mt-6 text-base font-medium text-slate-950">View and manage all income and expense activity</p>
+          </div>
         </div>
 
-        {/* Stats Summary */}
-        <div className="mb-8">
+        <div className="mb-7">
           <TransactionStatsSummary stats={stats} currency={currency} />
         </div>
 
-        {/* Filters Card */}
-        <Card className="mb-8">
+        <Card className="mb-6 border-slate-200 bg-white">
           <CardContent className="pt-6">
             <TransactionFilters
               filters={filters}
@@ -101,29 +104,23 @@ export default function TransactionsPage() {
           </CardContent>
         </Card>
 
-        {/* Sort Controls */}
-        <div className="mb-8">
+        <div className="mb-6">
           <TransactionSortControls sort={sort} onChange={handleSortChange} />
         </div>
 
-        {/* Transactions List */}
-        <Card>
+        <Card className="border-slate-200 bg-white">
           <CardContent className="pt-6">
             {sortedTransactions.length === 0 && Object.keys(filters).length > 0 ? (
               <div className="text-center py-12">
-                <div className="text-5xl mb-4">🔍</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="mb-2 text-lg font-semibold text-slate-950">
                   No transactions match your filters
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="mb-4 text-sm text-slate-500">
                   Try adjusting your filter criteria to see more results.
                 </p>
-                <button
-                  onClick={() => setFilters({})}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-                >
+                <Button onClick={() => setFilters({})}>
                   Clear Filters
-                </button>
+                </Button>
               </div>
             ) : (
               <TransactionList transactions={sortedTransactions} currency={currency} />

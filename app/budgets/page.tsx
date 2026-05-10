@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CreateMonthBudgetModal } from '@/components/budgets/CreateMonthBudgetModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
+import { FiCheckCircle, FiPieChart } from 'react-icons/fi';
 
 type EditMode = 'current' | 'template';
 
@@ -148,7 +149,6 @@ export default function BudgetsPage() {
 
   const totalBudget = Array.from(budgetValues.values()).reduce((sum, val) => sum + val, 0);
 
-  // Data to render
   const dataToRender = editMode === 'template' ? categories : currentMonthCategories.map((mc) => {
     const category = categories.find((c) => c.id === mc.categoryId);
     return {
@@ -161,52 +161,58 @@ export default function BudgetsPage() {
 
   const monthDate = new Date(currentMonth + '-01');
   const monthString = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const currency = household?.currency === 'NGN' ? '₦' : '$';
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Manage Budgets</h1>
-          <p className="text-gray-600 mt-2 mb-4">Update budgets for the current month or change your template for future months</p>
-          <MonthNavigation />
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-7">
+          <div className="mb-6 text-xs font-medium text-slate-400">
+            Dashboard <span className="mx-2">›</span> Budgets
+          </div>
+          <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-slate-950">Budgets</h1>
+              <p className="mt-6 text-base font-medium text-slate-950">Update this month or change the template for future months</p>
+            </div>
+            <div className="min-w-0 xl:w-[520px]">
+              <MonthNavigation />
+            </div>
+          </div>
         </div>
 
-        {/* Success Message */}
         {showSuccess && (
-          <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-green-800 font-medium">
-              ✓ Changes saved successfully!
-            </p>
+          <div className="mb-6 flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+            <FiCheckCircle className="h-4 w-4" aria-hidden="true" />
+            Changes saved successfully.
           </div>
         )}
 
-        {/* Mode Toggle */}
-        <div className="mb-6 bg-white p-1 rounded-lg inline-flex shadow-sm border border-gray-200">
+        <div className="mb-6 inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
           <button
             onClick={() => setEditMode('current')}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+            className={`rounded-md px-5 py-2 text-sm font-semibold transition-colors ${
               editMode === 'current'
                 ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-950'
             }`}
           >
             Current Month ({monthString})
           </button>
           <button
             onClick={() => setEditMode('template')}
-            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+            className={`rounded-md px-5 py-2 text-sm font-semibold transition-colors ${
               editMode === 'template'
                 ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-950'
             }`}
           >
             Template (Future Months)
           </button>
         </div>
 
-        {/* Info Box */}
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-900">
+        <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4">
+          <p className="text-sm font-medium text-blue-900">
             {editMode === 'current'
               ? `Editing budgets for ${monthString} only. These changes won't affect future months.`
               : 'Editing your budget template. All future months will use these amounts.'
@@ -216,9 +222,9 @@ export default function BudgetsPage() {
 
         {/* Categories */}
         {currentMonthCategories.length === 0 && editMode === 'current' ? (
-          <Card>
+          <Card className="border-slate-200 bg-white">
             <CardContent className="py-8 text-center">
-              <p className="text-gray-600 mb-4">
+              <p className="mb-4 text-sm text-slate-500">
                 No budget created for {monthString} yet.
               </p>
               <Button
@@ -230,18 +236,18 @@ export default function BudgetsPage() {
           </Card>
         ) : (
           <>
-            <div className="space-y-4 mb-6">
+            <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
               {dataToRender.map((item) => {
                 const categoryId = item.id;
                 return (
-                  <Card key={categoryId}>
+                  <Card key={categoryId} className="border-slate-200 bg-white">
                     <CardContent className="p-4">
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="mb-2 block text-sm font-semibold text-slate-900">
                           {item.name}
                         </label>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-900 font-medium">{household?.currency === 'NGN' ? '₦' : '$'}</span>
+                          <span className="font-semibold text-slate-900">{currency}</span>
                           <Input
                             type="number"
                             min="0"
@@ -250,16 +256,16 @@ export default function BudgetsPage() {
                             onChange={(e) => handleBudgetChange(categoryId, e.target.value)}
                             className="flex-1"
                           />
-                          <span className="text-gray-700 text-sm">/month</span>
+                          <span className="text-sm font-medium text-slate-500">/month</span>
                         </div>
                       </div>
 
-                      <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-600">
                         <input
                           type="checkbox"
                           checked={carryOverValues.get(categoryId) || false}
                           onChange={() => handleCarryOverToggle(categoryId)}
-                          className="rounded border-gray-300"
+                          className="rounded border-slate-300"
                         />
                         <span>Allow unused budget to carry over to next month</span>
                       </label>
@@ -269,16 +275,21 @@ export default function BudgetsPage() {
               })}
             </div>
 
-            {/* Total Budget */}
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-6">
-              <div className="text-sm text-gray-600">Total Monthly Budget</div>
-              <div className="text-3xl font-bold text-blue-600">
-                {household?.currency === 'NGN' ? '₦' : '$'}
+            <Card className="mb-6 border-0 bg-violet-50">
+              <CardHeader className="mb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Monthly Budget</CardTitle>
+                <span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-violet-600 shadow-sm">
+                  <FiPieChart className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </CardHeader>
+              <CardContent>
+              <div className="text-3xl font-semibold tracking-tight text-slate-950">
+                {currency}
                 {totalBudget.toFixed(2)}
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            {/* Save Button */}
             <Button
               variant="primary"
               onClick={handleSaveAll}
