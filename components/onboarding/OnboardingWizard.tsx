@@ -14,18 +14,20 @@ import CategoriesStep from './CategoriesStep';
 import BudgetStep from './BudgetStep';
 
 export default function OnboardingWizard() {
-  const { completeOnboarding, onboardingCompleted } = useBudget();
+  const { completeOnboarding, onboardingCompleted, isAuthenticated, error } = useBudget();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Redirect to dashboard when onboarding is completed
   useEffect(() => {
-    console.log('OnboardingWizard: onboardingCompleted =', onboardingCompleted);
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
     if (onboardingCompleted) {
-      console.log('OnboardingWizard: Redirecting to dashboard');
       router.push('/dashboard');
     }
-  }, [onboardingCompleted, router]);
+  }, [isAuthenticated, onboardingCompleted, router]);
 
   // Step data
   const [household, setHousehold] = useState<Omit<Household, 'id' | 'createdAt' | 'updatedAt'> | null>(null);
@@ -58,12 +60,6 @@ export default function OnboardingWizard() {
 
   const handleComplete = () => {
     try {
-      console.log('Complete button clicked');
-      console.log('Household:', household);
-      console.log('Members:', members);
-      console.log('Categories:', categories);
-      console.log('Income Sources:', incomeSources);
-
       if (!household) {
         alert('Please enter a household name to continue');
         return;
@@ -122,15 +118,7 @@ export default function OnboardingWizard() {
         createdAt: new Date().toISOString(),
       }));
 
-      console.log('Calling completeOnboarding with:', {
-        householdWithId,
-        membersWithHousehold,
-        sourcesWithId,
-        categoriesWithId,
-      });
-
       completeOnboarding(householdWithId, membersWithHousehold, sourcesWithId, categoriesWithId);
-      console.log('completeOnboarding called successfully');
     } catch (error) {
       console.error('Error in handleComplete:', error);
       alert('An error occurred while completing setup. Check the console for details.');
@@ -148,6 +136,12 @@ export default function OnboardingWizard() {
 
         {/* Step Indicator */}
         <StepIndicator currentStep={currentStep + 1} totalSteps={steps.length} />
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Step Content */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">

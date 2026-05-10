@@ -8,21 +8,17 @@ RUN apk add --no-cache git
 RUN git clone https://github.com/ugonkwocha/pairwise-budgeting-app.git . && \
     git log -1 --oneline
 
-# Install all dependencies (for build and Prisma)
+# Install dependencies
 RUN npm install
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Build Next.js application
 RUN npm run build
 
-# Remove dev dependencies for production (keep prisma CLI)
+# Remove dev dependencies for production
 RUN npm prune --omit=dev
 
 # Expose Next.js port
 EXPOSE 3000
 
-# Start: push schema to database, then start Next.js app
-# DATABASE_URL environment variable must be set in Coolify
-CMD ["npm", "run", "start:with-db-push"]
+# Start Next.js app. Run Supabase SQL migrations separately with npm run migrate.
+CMD ["npm", "start"]

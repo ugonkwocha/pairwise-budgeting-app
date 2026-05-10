@@ -16,14 +16,13 @@ import {
   CategorySpending,
   IncomeBreakdown,
 } from '@/types';
-import { getBudgetData, saveBudgetData, BudgetStorageSchema } from '@/lib/storage/budgetStorage';
-import * as budgetStorage from '@/lib/storage/budgetStorage';
+import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
 import { checkAndCreateAlerts } from '@/lib/calculations/alertCalculations';
 import { calculateCarryOvers, getPreviousMonth } from '@/lib/utils/monthUtils';
+import * as budgetRepository from '@/lib/supabase/budgetRepository';
 
 export interface BudgetContextType {
-  // State
   household: Household | null;
   users: User[];
   categories: Category[];
@@ -35,14 +34,11 @@ export interface BudgetContextType {
   alerts: Alert[];
   onboardingCompleted: boolean;
   currentMonth: string;
-
-  // Derived calculations
+  isAuthenticated: boolean;
   budgetSummary: BudgetSummary;
   categorySpending: CategorySpending[];
   incomeBreakdown: IncomeBreakdown[];
   activeAlerts: Alert[];
-
-  // Actions
   addIncome: (income: Omit<Income, 'id' | 'createdAt'>) => void;
   updateIncome: (incomeId: string, updates: Partial<Income>) => void;
   deleteIncome: (incomeId: string) => void;
@@ -70,43 +66,51 @@ export interface BudgetContextType {
   dismissAlert: (alertId: string) => void;
   setCurrentMonth: (month: string) => void;
   createMonthlyBudgets: (month: string) => void;
-
-  // Loading state
+  reload: () => Promise<void>;
   isLoading: boolean;
+  error: string | null;
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
 
+function emptySummary(): BudgetSummary {
+  return {
+    totalIncome: 0,
+    totalBudgeted: 0,
+    totalSpent: 0,
+    remaining: 0,
+    netDisposableIncome: 0,
+    savingsBalance: 0,
+  };
+}
+
 export function BudgetProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<BudgetStorageSchema | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Initialize data from localStorage
-  useEffect(() => {
-    const initialData = getBudgetData();
-    setData(initialData);
-    setIsLoading(false);
+  const reload = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await budgetRepository.loadBudgetData();
+      setData(result.data);
+      setIsAuthenticated(result.isAuthenticated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load budget data');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  // Save to localStorage whenever data changes
   useEffect(() => {
-    if (data) {
-      saveBudgetData(data);
-    }
-  }, [data]);
+    reload();
+  }, [reload]);
 
   const budgetSummary = useMemo(() => {
-    if (!data) {
-      return {
-        totalIncome: 0,
-        totalBudgeted: 0,
-        totalSpent: 0,
-        remaining: 0,
-        netDisposableIncome: 0,
-        savingsBalance: 0,
-      };
-    }
-
+    if (!data) return emptySummary();
     return calculateBudgetSummary(data.incomes, data.expenses, data.monthlyCategories, data.savingsContributions, data.currentMonth);
   }, [data?.incomes, data?.expenses, data?.monthlyCategories, data?.savingsContributions, data?.currentMonth]);
 
@@ -124,177 +128,167 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     return data?.alerts.filter((a) => !a.dismissed) || [];
   }, [data?.alerts]);
 
-  // Check for new alerts after calculations
   useEffect(() => {
-    if (!data || !data.onboardingCompleted) return;
+    if (!data?.onboardingCompleted || !data.household) return;
 
     const newAlerts = checkAndCreateAlerts(categorySpending, budgetSummary, data.alerts);
-    if (newAlerts.length > 0) {
-      setData((prev) =>
-        prev
-          ? {
-              ...prev,
-              alerts: [...prev.alerts, ...newAlerts],
-            }
-          : prev
-      );
-    }
-  }, [categorySpending, budgetSummary, data?.alerts, data?.onboardingCompleted]);
+    newAlerts.forEach((alert) => {
+      budgetRepository
+        .insertAlert(
+          {
+            type: alert.type,
+            severity: alert.severity,
+            message: alert.message,
+            categoryId: alert.categoryId,
+            dismissed: false,
+          },
+          data
+        )
+        .then((created) => {
+          setData((prev) => (prev ? { ...prev, alerts: [...prev.alerts, created] } : prev));
+        })
+        .catch((err) => setError(err instanceof Error ? err.message : 'Unable to create alert'));
+    });
+  }, [categorySpending, budgetSummary, data?.alerts, data?.onboardingCompleted, data?.household]);
 
   const addIncome = useCallback((income: Omit<Income, 'id' | 'createdAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addIncome(income, prev) : prev));
-  }, []);
+    if (!data) return;
+    budgetRepository.insertIncome(income, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, incomes: [...prev.incomes, created] } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add income'));
+  }, [data]);
 
   const updateIncome = useCallback((incomeId: string, updates: Partial<Income>) => {
-    setData((prev) => (prev ? budgetStorage.updateIncome(incomeId, updates, prev) : prev));
+    budgetRepository.updateIncomeRow(incomeId, updates)
+      .then((updated) => setData((prev) => (prev ? { ...prev, incomes: prev.incomes.map((i) => i.id === incomeId ? updated : i) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update income'));
   }, []);
 
   const deleteIncome = useCallback((incomeId: string) => {
-    setData((prev) => (prev ? budgetStorage.deleteIncome(incomeId, prev) : prev));
+    budgetRepository.deleteIncomeRow(incomeId)
+      .then(() => setData((prev) => (prev ? { ...prev, incomes: prev.incomes.filter((i) => i.id !== incomeId) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete income'));
   }, []);
 
   const addExpense = useCallback((expense: Omit<Expense, 'id' | 'createdAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addExpense(expense, prev) : prev));
-  }, []);
+    if (!data) return;
+    budgetRepository.insertExpense(expense, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, expenses: [...prev.expenses, created] } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add expense'));
+  }, [data]);
 
   const updateExpense = useCallback((expenseId: string, updates: Partial<Expense>) => {
-    setData((prev) => (prev ? budgetStorage.updateExpense(expenseId, updates, prev) : prev));
+    budgetRepository.updateExpenseRow(expenseId, updates)
+      .then((updated) => setData((prev) => (prev ? { ...prev, expenses: prev.expenses.map((e) => e.id === expenseId ? updated : e) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update expense'));
   }, []);
 
   const deleteExpense = useCallback((expenseId: string) => {
-    setData((prev) => (prev ? budgetStorage.deleteExpense(expenseId, prev) : prev));
+    budgetRepository.deleteExpenseRow(expenseId)
+      .then(() => setData((prev) => (prev ? { ...prev, expenses: prev.expenses.filter((e) => e.id !== expenseId) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete expense'));
   }, []);
 
-  const addCategory = useCallback((category: Omit<Category, 'id' | 'createdAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addCategory(category, prev) : prev));
+  const addCategory = useCallback((_category: Omit<Category, 'id' | 'createdAt'>) => {
+    setError('Adding categories after onboarding is not wired yet.');
   }, []);
 
   const updateCategory = useCallback((categoryId: string, updates: Partial<Category>) => {
-    setData((prev) => (prev ? budgetStorage.updateCategory(categoryId, updates, prev) : prev));
+    budgetRepository.updateCategoryRow(categoryId, updates)
+      .then((updated) => setData((prev) => (prev ? { ...prev, categories: prev.categories.map((c) => c.id === categoryId ? updated : c) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update category'));
   }, []);
 
   const updateMonthlyCategory = useCallback((monthlyCategoryId: string, updates: Partial<MonthlyCategory>) => {
-    setData((prev) => (prev ? budgetStorage.updateMonthlyCategory(monthlyCategoryId, updates, prev) : prev));
+    budgetRepository.updateMonthlyCategoryRow(monthlyCategoryId, updates)
+      .then((updated) => setData((prev) => (prev ? { ...prev, monthlyCategories: prev.monthlyCategories.map((mc) => mc.id === monthlyCategoryId ? updated : mc) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update monthly budget'));
   }, []);
 
-  const addSavingsGoal = useCallback((goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addSavingsGoal(goal, prev) : prev));
+  const addSavingsGoal = useCallback((_goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
+    setError('Savings goals are not wired to Supabase yet.');
   }, []);
 
-  const addSavingsContribution = useCallback((contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addSavingsContribution(contribution, prev) : prev));
+  const addSavingsContribution = useCallback((_contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => {
+    setError('Savings contributions are not wired to Supabase yet.');
   }, []);
 
   const addIncomeSource = useCallback((source: Omit<IncomeSource, 'id' | 'createdAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addIncomeSource(source, prev) : prev));
-  }, []);
+    if (!data) return;
+    budgetRepository.insertIncomeSource(source, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, incomeSources: [...prev.incomeSources, created] } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add income source'));
+  }, [data]);
 
   const updateIncomeSource = useCallback((sourceId: string, updates: Partial<IncomeSource>) => {
-    setData((prev) => (prev ? budgetStorage.updateIncomeSource(sourceId, updates, prev) : prev));
+    budgetRepository.updateIncomeSourceRow(sourceId, updates)
+      .then((updated) => setData((prev) => (prev ? { ...prev, incomeSources: prev.incomeSources.map((s) => s.id === sourceId ? updated : s) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update income source'));
   }, []);
 
   const deleteIncomeSource = useCallback((sourceId: string) => {
-    setData((prev) => (prev ? budgetStorage.deleteIncomeSource(sourceId, prev) : prev));
+    budgetRepository.deleteIncomeSourceRow(sourceId)
+      .then(() => setData((prev) => (prev ? { ...prev, incomeSources: prev.incomeSources.filter((s) => s.id !== sourceId) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete income source'));
   }, []);
 
   const setHouseholdData = useCallback((household: Household) => {
-    setData((prev) => (prev ? budgetStorage.setHousehold(household, prev) : prev));
+    budgetRepository.updateHouseholdRow(household)
+      .then((updated) => setData((prev) => (prev ? { ...prev, household: updated } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update household'));
   }, []);
 
   const addUserData = useCallback((user: Omit<User, 'id' | 'createdAt'>) => {
-    setData((prev) => (prev ? budgetStorage.addUser(user, prev) : prev));
-  }, []);
+    if (!data) return;
+    budgetRepository.insertBudgetMember(user, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, users: [...prev.users, created] } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to add member'));
+  }, [data]);
 
   const updateUser = useCallback((userId: string, updates: Partial<User>) => {
-    setData((prev) => (prev ? budgetStorage.updateUser(userId, updates, prev) : prev));
+    budgetRepository.updateBudgetMember(userId, updates)
+      .then((updated) => setData((prev) => (prev ? { ...prev, users: prev.users.map((u) => u.id === userId ? updated : u) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to update member'));
   }, []);
 
   const deleteUser = useCallback((userId: string) => {
-    setData((prev) => (prev ? budgetStorage.deleteUser(userId, prev) : prev));
+    budgetRepository.deleteBudgetMember(userId)
+      .then(() => setData((prev) => (prev ? { ...prev, users: prev.users.filter((u) => u.id !== userId) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to delete member'));
   }, []);
 
-  const completeOnboarding = useCallback(
-    (
-      household: Household,
-      users: User[],
-      incomeSources: IncomeSource[],
-      categories: Category[]
-    ) => {
-      console.log('BudgetContext completeOnboarding called with:', {
-        household,
-        users,
-        incomeSources,
-        categories,
-      });
-
-      setData((prev) => {
-        if (!prev) {
-          console.error('No previous data in context');
-          return prev;
-        }
-
-        try {
-          // Create monthly categories for current month
-          const monthlyCategories = categories.map((cat) => ({
-            id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
-            categoryId: cat.id,
-            categoryName: cat.name,
-            monthlyBudget: cat.monthlyBudget,
-            currentSpent: 0,
-            carryOverAmount: 0,
-            month: prev.currentMonth,
-            createdAt: new Date().toISOString(),
-          }));
-
-          const result: BudgetStorageSchema = {
-            ...prev,
-            household,
-            users,
-            incomeSources,
-            categories,
-            monthlyCategories: [...prev.monthlyCategories, ...monthlyCategories],
-            onboardingCompleted: true,
-          };
-
-          console.log('Onboarding complete, setting data:', result);
-          return result;
-        } catch (error) {
-          console.error('Error in completeOnboarding:', error);
-          return prev;
-        }
-      });
-    },
-    []
-  );
+  const completeOnboarding = useCallback((
+    household: Household,
+    users: User[],
+    incomeSources: IncomeSource[],
+    categories: Category[]
+  ) => {
+    const month = data?.currentMonth || new Date().toISOString().slice(0, 7);
+    budgetRepository.createHouseholdSetup(household, users, incomeSources, categories, month)
+      .then((createdData) => setData(createdData))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to complete onboarding'));
+  }, [data?.currentMonth]);
 
   const dismissAlert = useCallback((alertId: string) => {
-    setData((prev) => (prev ? budgetStorage.dismissAlert(alertId, prev) : prev));
+    budgetRepository.dismissAlertRow(alertId)
+      .then(() => setData((prev) => (prev ? { ...prev, alerts: prev.alerts.map((a) => a.id === alertId ? { ...a, dismissed: true } : a) } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to dismiss alert'));
   }, []);
 
   const setCurrentMonthData = useCallback((month: string) => {
     setData((prev) => (prev ? { ...prev, currentMonth: month } : prev));
   }, []);
 
-  const createMonthlyBudgets = useCallback((month: string) => {
-    setData((prev) => {
-      if (!prev) return prev;
+  const createMonthlyBudgetsAction = useCallback((month: string) => {
+    if (!data) return;
 
-      const previousMonth = getPreviousMonth(month);
-      const carryOvers = calculateCarryOvers(
-        previousMonth,
-        prev.monthlyCategories,
-        prev.expenses,
-        prev.categories
-      );
+    const previousMonth = getPreviousMonth(month);
+    const carryOvers = calculateCarryOvers(previousMonth, data.monthlyCategories, data.expenses, data.categories);
 
-      return budgetStorage.createMonthlyBudgetsFromTemplates(
-        month,
-        prev.categories,
-        carryOvers,
-        prev
-      );
-    });
-  }, []);
+    budgetRepository.createMonthlyBudgets(month, data.categories, carryOvers, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, monthlyCategories: [...prev.monthlyCategories, ...created] } : prev)))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Unable to create monthly budgets'));
+  }, [data]);
 
   if (!data || isLoading) {
     return <div>Loading...</div>;
@@ -312,6 +306,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     alerts: data.alerts,
     onboardingCompleted: data.onboardingCompleted,
     currentMonth: data.currentMonth,
+    isAuthenticated,
     budgetSummary,
     categorySpending,
     incomeBreakdown,
@@ -337,8 +332,10 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     completeOnboarding,
     dismissAlert,
     setCurrentMonth: setCurrentMonthData,
-    createMonthlyBudgets,
+    createMonthlyBudgets: createMonthlyBudgetsAction,
+    reload,
     isLoading: false,
+    error,
   };
 
   return <BudgetContext.Provider value={value}>{children}</BudgetContext.Provider>;
