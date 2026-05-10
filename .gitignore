@@ -48,5 +48,6 @@ Thumbs.db
 *.lock
 yarn.lock
 .vercel
+.vercel.*
 schema.sql
 supabase/.temp/

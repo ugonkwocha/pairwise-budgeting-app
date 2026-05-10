@@ -88,6 +88,14 @@ This app uses two long-lived branches:
 - `develop` deploys to Vercel Preview/Staging.
 - `main` deploys to Vercel Production.
 
+Use the separate PairWise Vercel account for this project. If another Vercel account is logged in globally, do not run plain `vercel` commands. Use a token from the PairWise Vercel account instead:
+
+```bash
+VERCEL_TOKEN="token_from_pairwise_vercel_account"
+npx vercel link --token "$VERCEL_TOKEN"
+npx vercel --token "$VERCEL_TOKEN"
+```
+
 Use separate Supabase projects for staging and production. Each Vercel environment should have its own values:
 
 ```bash
