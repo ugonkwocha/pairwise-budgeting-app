@@ -39,6 +39,14 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isPublicPath = PUBLIC_PATHS.has(pathname);
+  const authCode = request.nextUrl.searchParams.get('code');
+
+  if (authCode && pathname !== '/auth/callback') {
+    const callbackUrl = request.nextUrl.clone();
+    callbackUrl.pathname = '/auth/callback';
+    callbackUrl.searchParams.set('next', '/onboarding');
+    return NextResponse.redirect(callbackUrl);
+  }
 
   if (!user && !isPublicPath) {
     const loginUrl = request.nextUrl.clone();

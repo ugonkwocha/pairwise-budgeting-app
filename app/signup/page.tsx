@@ -11,12 +11,14 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [successEmail, setSuccessEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessEmail('');
     setLoading(true);
 
     try {
@@ -39,7 +41,7 @@ export default function SignupPage() {
       const supabase = createClient();
 
       // Sign up user
-      const { error: signupError } = await supabase.auth.signUp({
+      const { data, error: signupError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -55,7 +57,16 @@ export default function SignupPage() {
         return;
       }
 
-      router.push('/onboarding');
+      if (data.session) {
+        router.push('/onboarding');
+        return;
+      }
+
+      setSuccessEmail(email);
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (err) {
       setError('An unexpected error occurred');
       console.error(err);
@@ -78,6 +89,15 @@ export default function SignupPage() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
+          {successEmail && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm font-medium">Check your email to confirm your account.</p>
+              <p className="text-green-700 text-sm mt-1">
+                We sent a confirmation link to {successEmail}. After confirming, you can continue setup.
+              </p>
             </div>
           )}
 
