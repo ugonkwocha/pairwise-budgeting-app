@@ -29,8 +29,7 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to dashboard after successful login
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
       setError('An unexpected error occurred');
       console.error(err);
@@ -116,13 +115,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-gray-700">
-            <strong>Demo mode:</strong> Authentication is configured but requires Supabase setup.
-            See SUPABASE_SETUP.md for configuration.
-          </p>
-        </div>
       </div>
     </div>
   );

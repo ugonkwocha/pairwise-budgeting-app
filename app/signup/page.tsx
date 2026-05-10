@@ -43,6 +43,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/onboarding`,
           data: {
             name,
           },
@@ -54,7 +55,6 @@ export default function SignupPage() {
         return;
       }
 
-      // Redirect to onboarding
       router.push('/onboarding');
     } catch (err) {
       setError('An unexpected error occurred');
@@ -166,13 +166,6 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-gray-700">
-            <strong>Demo mode:</strong> Authentication is configured but requires Supabase setup.
-            See SUPABASE_SETUP.md for configuration.
-          </p>
-        </div>
       </div>
     </div>
   );

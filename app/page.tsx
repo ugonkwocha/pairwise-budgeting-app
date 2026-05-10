@@ -5,26 +5,20 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function Home() {
-  const { onboardingCompleted, isLoading } = useBudget();
+  const { onboardingCompleted, isAuthenticated, isLoading } = useBudget();
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Root page useEffect triggered:', {
-      isLoading,
-      onboardingCompleted,
-    });
-
     if (!isLoading) {
-      console.log('Not loading, checking onboarding status...');
-      if (!onboardingCompleted) {
-        console.log('Redirecting to onboarding');
+      if (!isAuthenticated) {
+        router.push('/login');
+      } else if (!onboardingCompleted) {
         router.push('/onboarding');
       } else {
-        console.log('Redirecting to dashboard');
         router.push('/dashboard');
       }
     }
-  }, [onboardingCompleted, isLoading, router]);
+  }, [onboardingCompleted, isAuthenticated, isLoading, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

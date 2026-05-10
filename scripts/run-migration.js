@@ -53,18 +53,30 @@ async function runMigration() {
     await client.connect();
     console.log('✅ Connected successfully');
 
-    // Read migration file
-    const migrationPath = path.join(__dirname, '../supabase/migrations/001_initial_schema.sql');
+    const migrationsDir = path.join(__dirname, '../supabase/migrations');
 
-    if (!fs.existsSync(migrationPath)) {
-      throw new Error(`Migration file not found: ${migrationPath}`);
+    if (!fs.existsSync(migrationsDir)) {
+      throw new Error(`Migrations directory not found: ${migrationsDir}`);
     }
 
-    const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
-    console.log('📋 Running migration...');
+    const migrationFiles = fs
+      .readdirSync(migrationsDir)
+      .filter((file) => file.endsWith('.sql'))
+      .sort();
 
-    // Execute migration
-    await client.query(migrationSql);
+    if (migrationFiles.length === 0) {
+      throw new Error(`No SQL migrations found in ${migrationsDir}`);
+    }
+
+    console.log(`📋 Running ${migrationFiles.length} migration(s)...`);
+
+    for (const file of migrationFiles) {
+      const migrationPath = path.join(migrationsDir, file);
+      const migrationSql = fs.readFileSync(migrationPath, 'utf-8');
+      console.log(`➡️  ${file}`);
+      await client.query(migrationSql);
+    }
+
     console.log('✅ Migration completed successfully');
 
     await client.end();

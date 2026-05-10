@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/reset-password`,
       });
 
       if (error) {
@@ -104,13 +104,6 @@ export default function ForgotPasswordPage() {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-gray-700">
-            <strong>Demo mode:</strong> Email functionality requires Resend API key in .env.local.
-            See ENVIRONMENT_SETUP.md for details.
-          </p>
-        </div>
       </div>
     </div>
   );
