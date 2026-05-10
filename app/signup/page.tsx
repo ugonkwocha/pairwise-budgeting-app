@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { AuthAlert, AuthShell, authButtonClass, authInputClass } from '@/components/auth/AuthShell';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -76,35 +77,25 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">PairWise</h1>
-          <p className="text-gray-600">Create your account</p>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <AuthShell title="Create account" subtitle="Start your household budget workspace.">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
+            <AuthAlert variant="error">
+              <p>{error}</p>
+            </AuthAlert>
           )}
 
           {successEmail && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 text-sm font-medium">Check your email to confirm your account.</p>
-              <p className="text-green-700 text-sm mt-1">
+            <AuthAlert variant="success">
+              <p className="font-semibold">Check your email to confirm your account.</p>
+              <p className="mt-1">
                 We sent a confirmation link to {successEmail}. After confirming, you can continue setup.
               </p>
-            </div>
+            </AuthAlert>
           )}
 
           <form onSubmit={handleSignup} className="space-y-4">
-            {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="mb-2 block text-sm font-semibold text-slate-700">
                 Full Name
               </label>
               <input
@@ -114,13 +105,12 @@ export default function SignupPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={authInputClass}
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
                 Email
               </label>
               <input
@@ -130,13 +120,12 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={authInputClass}
               />
             </div>
 
-            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
                 Password
               </label>
               <input
@@ -146,14 +135,13 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={authInputClass}
               />
-              <p className="mt-1 text-xs text-gray-500">At least 8 characters</p>
+              <p className="mt-1 text-xs text-slate-500">At least 8 characters</p>
             </div>
 
-            {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="mb-2 block text-sm font-semibold text-slate-700">
                 Confirm Password
               </label>
               <input
@@ -163,30 +151,25 @@ export default function SignupPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={authInputClass}
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+              className={authButtonClass}
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 
-          {/* Link */}
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-slate-500">
             Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
               Sign in
             </Link>
           </div>
-        </div>
-
-      </div>
-    </div>
+    </AuthShell>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { AuthAlert, AuthShell, authButtonClass, authInputClass } from '@/components/auth/AuthShell';
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -49,26 +50,16 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">PairWise</h1>
-          <p className="text-gray-600">Create a new password</p>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <AuthShell title="Create new password" subtitle="Choose a fresh password for your PairWise account.">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
+            <AuthAlert variant="error">
+              <p>{error}</p>
+            </AuthAlert>
           )}
 
           <form onSubmit={handleReset} className="space-y-4">
-            {/* New Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="mb-2 block text-sm font-semibold text-slate-700">
                 New Password
               </label>
               <input
@@ -78,14 +69,13 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={authInputClass}
               />
-              <p className="mt-1 text-xs text-gray-500">At least 8 characters</p>
+              <p className="mt-1 text-xs text-slate-500">At least 8 characters</p>
             </div>
 
-            {/* Confirm Password */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="mb-2 block text-sm font-semibold text-slate-700">
                 Confirm Password
               </label>
               <input
@@ -95,36 +85,31 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={authInputClass}
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+              className={authButtonClass}
             >
               {loading ? 'Updating password...' : 'Update Password'}
             </button>
           </form>
 
-          {/* Link */}
           <div className="mt-6 text-center text-sm">
-            <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
               Back to sign in
             </Link>
           </div>
-        </div>
 
-        {/* Info */}
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-gray-700">
-            <strong>Note:</strong> This page should only be accessed via a password reset email link
-            from your account recovery request.
-          </p>
-        </div>
-      </div>
-    </div>
+          <div className="mt-6">
+            <AuthAlert variant="info">
+              <strong>Note:</strong> This page should only be accessed via a password reset email link
+              from your account recovery request.
+            </AuthAlert>
+          </div>
+    </AuthShell>
   );
 }

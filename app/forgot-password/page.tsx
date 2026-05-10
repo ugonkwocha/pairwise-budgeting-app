@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { AuthAlert, AuthShell, authButtonClass, authInputClass } from '@/components/auth/AuthShell';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -38,34 +39,24 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">PairWise</h1>
-          <p className="text-gray-600">Reset your password</p>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8">
+    <AuthShell title="Reset password" subtitle="We’ll send a secure recovery link to your email.">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700 text-sm">{error}</p>
-            </div>
+            <AuthAlert variant="error">
+              <p>{error}</p>
+            </AuthAlert>
           )}
 
           {success && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-700 text-sm">
+            <AuthAlert variant="success">
+              <p>
                 Check your email for a password reset link. The link expires in 1 hour.
               </p>
-            </div>
+            </AuthAlert>
           )}
 
           <form onSubmit={handleReset} className="space-y-4">
-            {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
                 Email Address
               </label>
               <input
@@ -76,35 +67,30 @@ export default function ForgotPasswordPage() {
                 placeholder="you@example.com"
                 required
                 disabled={success}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                className={authInputClass}
               />
-              <p className="mt-2 text-xs text-gray-600">
+              <p className="mt-2 text-xs text-slate-500">
                 Enter the email address associated with your account.
               </p>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading || success}
-              className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+              className={authButtonClass}
             >
               {loading ? 'Sending reset link...' : 'Send Reset Link'}
             </button>
           </form>
 
-          {/* Links */}
           <div className="mt-6 space-y-3 text-center text-sm">
-            <Link href="/login" className="block text-blue-600 hover:text-blue-700 font-medium">
+            <Link href="/login" className="block font-semibold text-blue-600 hover:text-blue-700">
               Back to sign in
             </Link>
-            <Link href="/signup" className="block text-gray-600 hover:text-gray-700">
+            <Link href="/signup" className="block text-slate-500 hover:text-slate-700">
               Create a new account
             </Link>
           </div>
-        </div>
-
-      </div>
-    </div>
+    </AuthShell>
   );
 }
