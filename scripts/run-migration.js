@@ -18,20 +18,24 @@ const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
 
+function cleanEnvValue(value) {
+  return value?.trim().replace(/\\n/g, '');
+}
+
 async function runMigration() {
   let client;
 
   try {
     // Determine connection string
-    let connectionString = process.env.SUPABASE_DB_URL;
+    let connectionString = cleanEnvValue(process.env.SUPABASE_DB_URL);
 
     if (!connectionString) {
       // Build from individual components
-      const host = process.env.SUPABASE_DB_HOST;
-      const port = process.env.SUPABASE_DB_PORT || 5432;
-      const database = process.env.SUPABASE_DB_NAME || 'postgres';
-      const user = process.env.SUPABASE_DB_USER || 'postgres';
-      const password = process.env.SUPABASE_DB_PASSWORD;
+      const host = cleanEnvValue(process.env.SUPABASE_DB_HOST);
+      const port = cleanEnvValue(process.env.SUPABASE_DB_PORT) || 5432;
+      const database = cleanEnvValue(process.env.SUPABASE_DB_NAME) || 'postgres';
+      const user = cleanEnvValue(process.env.SUPABASE_DB_USER) || 'postgres';
+      const password = cleanEnvValue(process.env.SUPABASE_DB_PASSWORD);
 
       if (!host || !user || !password) {
         throw new Error(
