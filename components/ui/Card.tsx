@@ -14,8 +14,8 @@ export function Card({ className, variant = 'default', padding = 'md', ...props 
   };
 
   const variantClasses = {
-    default: 'border-gray-200 bg-white border',
-    outlined: 'border-gray-300 bg-transparent border',
+    default: 'border-slate-200/80 bg-white/95 border shadow-sm',
+    outlined: 'border-slate-300 bg-transparent border',
   };
 
   return (
@@ -28,7 +28,7 @@ export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDiv
 }
 
 export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={clsx('text-lg font-semibold text-gray-900', className)} {...props} />;
+  return <h3 className={clsx('text-lg font-semibold text-slate-950', className)} {...props} />;
 }
 
 export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

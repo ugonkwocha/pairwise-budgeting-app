@@ -7,6 +7,7 @@ import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Badge } from '@/components/ui/Badge';
 import { CreateMonthBudgetModal } from '@/components/budgets/CreateMonthBudgetModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
+import { FiActivity, FiArrowDownRight, FiArrowUpRight, FiCreditCard } from 'react-icons/fi';
 
 export default function DashboardPage() {
   const {
@@ -44,25 +45,68 @@ export default function DashboardPage() {
     return <div>Loading...</div>;
   }
 
+  const currencySymbol = household.currency === 'NGN' ? '₦' : '$';
+  const spentPercentage = budgetSummary.totalBudgeted > 0
+    ? (budgetSummary.totalSpent / budgetSummary.totalBudgeted) * 100
+    : 0;
+
+  const metrics = [
+    {
+      label: 'Total Income',
+      value: budgetSummary.totalIncome,
+      icon: FiArrowUpRight,
+      accent: 'text-emerald-700',
+      surface: 'bg-emerald-50',
+    },
+    {
+      label: 'Budgeted',
+      value: budgetSummary.totalBudgeted,
+      icon: FiActivity,
+      accent: 'text-blue-700',
+      surface: 'bg-blue-50',
+    },
+    {
+      label: 'Spent',
+      value: budgetSummary.totalSpent,
+      icon: FiCreditCard,
+      accent: 'text-amber-700',
+      surface: 'bg-amber-50',
+      detail: `${spentPercentage.toFixed(1)}% of budget`,
+    },
+    {
+      label: 'Remaining',
+      value: budgetSummary.remaining,
+      icon: FiArrowDownRight,
+      accent: budgetSummary.remaining >= 0 ? 'text-emerald-700' : 'text-red-700',
+      surface: budgetSummary.remaining >= 0 ? 'bg-emerald-50' : 'bg-red-50',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{household.name} Dashboard</h1>
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Dashboard</p>
+              <h1 className="mt-1 text-3xl font-bold text-slate-950 md:text-4xl">{household.name}</h1>
+            </div>
+            <p className="max-w-xl text-sm text-slate-600">
+              Track income, spending, and budget health for your household.
+            </p>
+          </div>
           <MonthNavigation />
         </div>
 
-        {/* Alerts */}
         {activeAlerts.length > 0 && (
           <div className="mb-6 space-y-2">
             {activeAlerts.map((alert) => (
               <div
                 key={alert.id}
-                className={`p-4 rounded-lg ${
+                className={`rounded-lg border p-4 text-sm font-medium shadow-sm ${
                   alert.severity === 'danger'
-                    ? 'bg-red-50 border border-red-200 text-red-800'
-                    : 'bg-yellow-50 border border-yellow-200 text-yellow-800'
+                    ? 'border-red-200 bg-red-50 text-red-800'
+                    : 'border-amber-200 bg-amber-50 text-amber-800'
                 }`}
               >
                 {alert.message}
@@ -71,66 +115,29 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Total Income</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">
-                {household.currency === 'NGN' ? '₦' : '$'}
-                {budgetSummary.totalIncome.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Budgeted</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">
-                {household.currency === 'NGN' ? '₦' : '$'}
-                {budgetSummary.totalBudgeted.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Spent</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-orange-600">
-                {household.currency === 'NGN' ? '₦' : '$'}
-                {budgetSummary.totalSpent.toFixed(2)}
-              </div>
-              <div className="text-sm text-gray-600 mt-1">
-                {((budgetSummary.totalSpent / budgetSummary.totalBudgeted) * 100).toFixed(1)}% of budget
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Remaining</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`text-3xl font-bold ${
-                  budgetSummary.remaining >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {household.currency === 'NGN' ? '₦' : '$'}
-                {budgetSummary.remaining.toFixed(2)}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {metrics.map((metric) => (
+            <Card key={metric.label} className="overflow-hidden">
+              <CardHeader className="mb-3 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm font-semibold text-slate-600">{metric.label}</CardTitle>
+                <span className={`grid h-9 w-9 place-items-center rounded-lg ${metric.surface} ${metric.accent}`}>
+                  <metric.icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+              </CardHeader>
+              <CardContent>
+                <div className={`text-2xl font-bold tracking-tight ${metric.accent} md:text-3xl`}>
+                  {currencySymbol}
+                  {metric.value.toFixed(2)}
+                </div>
+                {metric.detail && (
+                  <div className="mt-1 text-sm font-medium text-slate-500">{metric.detail}</div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Category Breakdown */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Budget by Category</CardTitle>
@@ -140,7 +147,7 @@ export default function DashboardPage() {
                 {categorySpending.map((cat) => (
                   <div key={cat.categoryId}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium text-gray-900">{cat.categoryName}</span>
+                      <span className="font-medium text-slate-900">{cat.categoryName}</span>
                       <Badge
                         variant={
                           cat.status === 'healthy'
@@ -159,9 +166,9 @@ export default function DashboardPage() {
                       status={cat.status}
                       showLabel={false}
                     />
-                    <div className="text-xs text-gray-600 mt-1">
-                      {household.currency === 'NGN' ? '₦' : '$'}
-                      {cat.spent.toFixed(2)} / {household.currency === 'NGN' ? '₦' : '$'}
+                    <div className="mt-1 text-xs font-medium text-slate-500">
+                      {currencySymbol}
+                      {cat.spent.toFixed(2)} / {currencySymbol}
                       {cat.budget.toFixed(2)}
                     </div>
                   </div>
@@ -181,11 +188,11 @@ export default function DashboardPage() {
                   {incomeBreakdown.map((income) => (
                     <div key={income.sourceId}>
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium text-gray-900">{income.sourceName}</span>
-                        <span className="text-sm text-gray-600">{income.percentage.toFixed(1)}%</span>
+                        <span className="font-medium text-slate-900">{income.sourceName}</span>
+                        <span className="text-sm font-medium text-slate-500">{income.percentage.toFixed(1)}%</span>
                       </div>
-                      <div className="text-lg font-semibold text-gray-900">
-                        {household.currency === 'NGN' ? '₦' : '$'}
+                      <div className="text-lg font-semibold text-slate-950">
+                        {currencySymbol}
                         {income.amount.toFixed(2)}
                       </div>
                     </div>
