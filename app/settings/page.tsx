@@ -9,27 +9,31 @@ import { EditHouseholdModal } from '@/components/settings/EditHouseholdModal';
 import { AddUserModal } from '@/components/settings/AddUserModal';
 import { EditUserModal } from '@/components/settings/EditUserModal';
 import { AddCategoryModal } from '@/components/settings/AddCategoryModal';
+import { EditCategoryModal } from '@/components/settings/EditCategoryModal';
 import { AddIncomeSourceModal } from '@/components/settings/AddIncomeSourceModal';
 import { EditIncomeSourceModal } from '@/components/settings/EditIncomeSourceModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
-import type { User, IncomeSource } from '@/types';
+import type { User, IncomeSource, Category } from '@/types';
 
 export default function SettingsPage() {
-  const { household, users, categories, incomeSources, incomes, deleteUser, deleteIncomeSource } = useBudget();
+  const { household, users, categories, incomeSources, incomes, expenses, deleteUser, deleteIncomeSource, deleteCategory } = useBudget();
 
   // Modal states
   const [isEditHouseholdOpen, setIsEditHouseholdOpen] = useState(false);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [isEditCategoryOpen, setIsEditCategoryOpen] = useState(false);
   const [isAddSourceOpen, setIsAddSourceOpen] = useState(false);
   const [isEditSourceOpen, setIsEditSourceOpen] = useState(false);
   const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
   const [isDeleteSourceOpen, setIsDeleteSourceOpen] = useState(false);
+  const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
 
   // Selected items for editing/deleting
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [selectedSource, setSelectedSource] = useState<IncomeSource | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -72,6 +76,16 @@ export default function SettingsPage() {
 
     setSelectedSource(source);
     setIsDeleteSourceOpen(true);
+  };
+
+  const handleEditCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setIsEditCategoryOpen(true);
+  };
+
+  const handleDeleteCategory = (category: Category) => {
+    setSelectedCategory(category);
+    setIsDeleteCategoryOpen(true);
   };
 
   if (!household) {
@@ -245,25 +259,40 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {categories.map((category) => (
                   <div key={category.id} className="rounded-lg bg-slate-50 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="h-3 w-3 shrink-0 rounded-full"
-                            style={{ backgroundColor: category.color || '#2563eb' }}
-                          />
-                          <div className="break-words font-medium text-slate-900">{category.name}</div>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="h-3 w-3 shrink-0 rounded-full"
+                              style={{ backgroundColor: category.color || '#2563eb' }}
+                            />
+                            <div className="break-words font-medium text-slate-900">{category.name}</div>
+                          </div>
+                          <div className="mt-2 text-sm text-slate-500">
+                            {household.currency === 'NGN' ? '₦' : '$'}
+                            {category.monthlyBudget.toFixed(2)} monthly budget
+                          </div>
                         </div>
-                        <div className="mt-2 text-sm text-slate-500">
-                          {household.currency === 'NGN' ? '₦' : '$'}
-                          {category.monthlyBudget.toFixed(2)} monthly budget
-                        </div>
+                        {category.carryOverEnabled && (
+                          <Badge variant="info" size="sm">
+                            Carry over
+                          </Badge>
+                        )}
                       </div>
-                      {category.carryOverEnabled && (
-                        <Badge variant="info" size="sm">
-                          Carry over
-                        </Badge>
-                      )}
+                      <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -293,6 +322,16 @@ export default function SettingsPage() {
       )}
       <AddIncomeSourceModal isOpen={isAddSourceOpen} onClose={() => setIsAddSourceOpen(false)} />
       <AddCategoryModal isOpen={isAddCategoryOpen} onClose={() => setIsAddCategoryOpen(false)} />
+      {selectedCategory && (
+        <EditCategoryModal
+          isOpen={isEditCategoryOpen}
+          onClose={() => {
+            setIsEditCategoryOpen(false);
+            setSelectedCategory(null);
+          }}
+          category={selectedCategory}
+        />
+      )}
       {selectedSource && (
         <EditIncomeSourceModal
           isOpen={isEditSourceOpen}
@@ -325,6 +364,22 @@ export default function SettingsPage() {
           onConfirm={() => deleteIncomeSource(selectedSource.id)}
           title="Delete Income Source"
           message={`Are you sure you want to delete ${selectedSource.name}? This action cannot be undone.`}
+        />
+      )}
+      {selectedCategory && (
+        <ConfirmDeleteModal
+          isOpen={isDeleteCategoryOpen}
+          onClose={() => {
+            setIsDeleteCategoryOpen(false);
+            setSelectedCategory(null);
+          }}
+          onConfirm={() => deleteCategory(selectedCategory.id)}
+          title="Delete Expense Category"
+          message={
+            expenses.some((expense) => expense.categoryId === selectedCategory.id)
+              ? `Delete ${selectedCategory.name}? Existing expenses in this category will stay in your history, but the category will no longer be available for new expenses or budgets.`
+              : `Are you sure you want to delete ${selectedCategory.name}? This action cannot be undone.`
+          }
         />
       )}
     </div>

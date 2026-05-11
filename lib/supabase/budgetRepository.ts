@@ -395,14 +395,24 @@ export async function insertIncomeSource(source: Omit<IncomeSource, 'id' | 'crea
 }
 
 export async function updateIncomeSourceRow(sourceId: string, updates: Partial<IncomeSource>): Promise<IncomeSource> {
+  const supabase = createClient();
   const row = await throwIfError(
-    await createClient()
+    await supabase
       .from('income_sources')
       .update({ name: updates.name, description: updates.description ?? null } as any)
       .eq('id', sourceId)
       .select('*')
       .single()
   );
+  if (!row) throw new Error('Income source was not updated');
+  if (updates.name) {
+    await throwIfError(
+      await supabase
+        .from('incomes')
+        .update({ source_name: row.name } as any)
+        .eq('source_id', sourceId)
+    );
+  }
   return toIncomeSource(row);
 }
 
@@ -534,8 +544,9 @@ export async function updateHouseholdRow(household: Household): Promise<Househol
 }
 
 export async function updateCategoryRow(categoryId: string, updates: Partial<Category>): Promise<Category> {
+  const supabase = createClient();
   const row = await throwIfError(
-    await createClient()
+    await supabase
       .from('categories')
       .update({
         name: updates.name,
@@ -548,7 +559,20 @@ export async function updateCategoryRow(categoryId: string, updates: Partial<Cat
       .select('*')
       .single()
   );
+  if (!row) throw new Error('Category was not updated');
+  if (updates.name) {
+    await throwIfError(
+      await supabase
+        .from('expenses')
+        .update({ category_name: row.name } as any)
+        .eq('category_id', categoryId)
+    );
+  }
   return toCategory(row);
+}
+
+export async function deleteCategoryRow(categoryId: string): Promise<void> {
+  await throwIfError(await createClient().from('categories').delete().eq('id', categoryId));
 }
 
 export async function updateMonthlyCategoryRow(monthlyCategoryId: string, updates: Partial<MonthlyCategory>): Promise<MonthlyCategory> {

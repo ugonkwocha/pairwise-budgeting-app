@@ -49,6 +49,7 @@ export interface BudgetContextType {
   deleteExpense: (expenseId: string) => void;
   addCategory: (category: Omit<Category, 'id' | 'createdAt'>) => void;
   updateCategory: (categoryId: string, updates: Partial<Category>) => void;
+  deleteCategory: (categoryId: string) => void;
   updateMonthlyCategory: (monthlyCategoryId: string, updates: Partial<MonthlyCategory>) => void;
   addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
   addSavingsContribution: (contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => void;
@@ -220,8 +221,37 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
 
   const updateCategory = useCallback((categoryId: string, updates: Partial<Category>) => {
     budgetRepository.updateCategoryRow(categoryId, updates)
-      .then((updated) => setData((prev) => (prev ? { ...prev, categories: prev.categories.map((c) => c.id === categoryId ? updated : c) } : prev)))
+      .then((updated) => {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            categories: prev.categories.map((category) => category.id === categoryId ? updated : category),
+            monthlyCategories: prev.monthlyCategories.map((category) =>
+              category.categoryId === categoryId ? { ...category, categoryName: updated.name } : category
+            ),
+            expenses: prev.expenses.map((expense) =>
+              expense.categoryId === categoryId ? { ...expense, categoryName: updated.name } : expense
+            ),
+          };
+        });
+      })
       .catch((err) => setError(getErrorMessage(err, 'Unable to update category')));
+  }, []);
+
+  const deleteCategory = useCallback((categoryId: string) => {
+    budgetRepository.deleteCategoryRow(categoryId)
+      .then(() => {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            categories: prev.categories.filter((category) => category.id !== categoryId),
+            monthlyCategories: prev.monthlyCategories.filter((category) => category.categoryId !== categoryId),
+          };
+        });
+      })
+      .catch((err) => setError(getErrorMessage(err, 'Unable to delete category')));
   }, []);
 
   const updateMonthlyCategory = useCallback((monthlyCategoryId: string, updates: Partial<MonthlyCategory>) => {
@@ -247,7 +277,18 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
 
   const updateIncomeSource = useCallback((sourceId: string, updates: Partial<IncomeSource>) => {
     budgetRepository.updateIncomeSourceRow(sourceId, updates)
-      .then((updated) => setData((prev) => (prev ? { ...prev, incomeSources: prev.incomeSources.map((s) => s.id === sourceId ? updated : s) } : prev)))
+      .then((updated) => {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            incomeSources: prev.incomeSources.map((source) => source.id === sourceId ? updated : source),
+            incomes: prev.incomes.map((income) =>
+              income.sourceId === sourceId ? { ...income, sourceName: updated.name } : income
+            ),
+          };
+        });
+      })
       .catch((err) => setError(getErrorMessage(err, 'Unable to update income source')));
   }, []);
 
@@ -361,6 +402,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     deleteExpense,
     addCategory,
     updateCategory,
+    deleteCategory,
     updateMonthlyCategory,
     addSavingsGoal,
     addSavingsContribution,
