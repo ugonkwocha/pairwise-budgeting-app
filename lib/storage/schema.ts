@@ -16,6 +16,7 @@ export const STORAGE_VERSION = 1;
 export interface BudgetStorageSchema {
   version: number;
   household: Household | null;
+  currentUser: User | null;
   users: User[];
   incomeSources: IncomeSource[];
   incomes: Income[];
@@ -33,6 +34,7 @@ export interface BudgetStorageSchema {
 export const INITIAL_STORAGE: BudgetStorageSchema = {
   version: STORAGE_VERSION,
   household: null,
+  currentUser: null,
   users: [],
   incomeSources: [],
   incomes: [],

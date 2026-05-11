@@ -25,6 +25,7 @@ import * as budgetRepository from '@/lib/supabase/budgetRepository';
 
 export interface BudgetContextType {
   household: Household | null;
+  currentUser: User | null;
   users: User[];
   categories: Category[];
   monthlyCategories: MonthlyCategory[];
@@ -322,6 +323,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
 
   const value: BudgetContextType = {
     household: data.household,
+    currentUser: data.currentUser,
     users: data.users,
     categories: data.categories,
     monthlyCategories: data.monthlyCategories,

@@ -23,7 +23,7 @@ import { useState } from 'react';
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { household, users, isAuthenticated, onboardingCompleted, reload } = useBudget();
+  const { household, currentUser, isAuthenticated, onboardingCompleted, reload } = useBudget();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -49,7 +49,7 @@ export default function Navbar() {
   ];
 
   const isActive = (href: string) => pathname === href;
-  const primaryUser = users[0];
+  const accountUser = currentUser;
 
   const sidebar = (
     <aside className="flex h-full flex-col border-r border-slate-200 bg-white">
@@ -110,11 +110,11 @@ export default function Navbar() {
       <div className="border-t border-slate-100 p-4">
         <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 p-3">
           <div className="grid h-9 w-9 place-items-center rounded-full bg-slate-900 text-sm font-semibold text-white">
-            {(primaryUser?.name || primaryUser?.email || 'U').charAt(0).toUpperCase()}
+            {(accountUser?.name || accountUser?.email || 'U').charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-950">{primaryUser?.name || 'Account'}</p>
-            <p className="truncate text-xs text-slate-500">{primaryUser?.email || 'Signed in'}</p>
+            <p className="truncate text-sm font-semibold text-slate-950">{accountUser?.name || 'Account'}</p>
+            <p className="truncate text-xs text-slate-500">{accountUser?.email || 'Signed in'}</p>
           </div>
         </div>
         <button

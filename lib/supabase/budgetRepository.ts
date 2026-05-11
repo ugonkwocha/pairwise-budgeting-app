@@ -211,7 +211,15 @@ export async function loadBudgetData(): Promise<{
   const monthlyRows = await throwIfError(
     await supabase.from('monthly_categories').select('*').eq('household_id', householdId).order('month')
   );
-  const users = (members || []).map(toUser);
+  const memberRows = (members || []) as any[];
+  const users = memberRows.map(toUser);
+  const currentUser =
+    users.find((member) => {
+      const source = memberRows.find((row) => row.id === member.id);
+      return source?.auth_user_id === user.id;
+    }) ||
+    users.find((member) => member.email.toLowerCase() === (user.email || '').toLowerCase()) ||
+    null;
   const contributions = await throwIfError(
     await supabase.from('savings_contributions').select('*').eq('household_id', householdId).order('date', { ascending: false })
   );
@@ -221,6 +229,7 @@ export async function loadBudgetData(): Promise<{
     data: {
       ...freshInitialStorage(),
       household: toHousehold(household),
+      currentUser,
       users,
       incomeSources: (sources || []).map(toIncomeSource),
       incomes: (incomes || []).map(toIncome),

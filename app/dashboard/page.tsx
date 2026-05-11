@@ -44,6 +44,7 @@ export default function DashboardPage() {
     currentMonth,
     monthlyCategories,
     categories,
+    currentUser,
     users,
     expenses,
     incomes,
@@ -154,7 +155,7 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-semibold text-slate-950">Budget</h1>
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <p className="text-base font-medium text-slate-950">Hi {users[0]?.name?.split(' ')[0] || 'there'}</p>
+                <p className="text-base font-medium text-slate-950">Hi {currentUser?.name?.split(' ')[0] || 'there'}</p>
                 <a
                   href="/analytics"
                   className="rounded-full bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-600 transition hover:bg-teal-100"
