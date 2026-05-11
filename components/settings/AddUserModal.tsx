@@ -19,6 +19,7 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
   const [role, setRole] = useState<'primary' | 'member'>('member');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [emailNotice, setEmailNotice] = useState('');
   const [invite, setInvite] = useState<MemberInviteResult | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,6 +41,7 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
 
     setIsSubmitting(true);
     setError('');
+    setEmailNotice('');
 
     try {
       const createdInvite = await inviteUser({
@@ -48,6 +50,22 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
         role,
         householdId: household.id,
       });
+
+      const response = await fetch('/api/invites/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: createdInvite.member.email,
+          name: createdInvite.member.name,
+          householdName: household.name,
+          inviteUrl: createdInvite.inviteUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        setEmailNotice(result?.error || 'Invite was created, but the email could not be sent. You can copy the link below.');
+      }
 
       setInvite(createdInvite);
       setName('');
@@ -65,6 +83,7 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
     setEmail('');
     setRole('member');
     setError('');
+    setEmailNotice('');
     setInvite(null);
     setIsSubmitting(false);
     onClose();
@@ -82,9 +101,15 @@ export function AddUserModal({ isOpen, onClose }: AddUserModalProps) {
           <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
             <p className="text-sm font-semibold text-emerald-900">Invite created for {invite.member.email}</p>
             <p className="mt-1 text-sm text-emerald-800">
-              Share this link with them. They must sign up or sign in using the same email address.
+              We sent them an email. They must sign up or sign in using the same email address.
             </p>
           </div>
+
+          {emailNotice && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              {emailNotice}
+            </div>
+          )}
 
           <div>
             <label className="mb-1.5 block text-sm font-semibold text-slate-700">Invite link</label>
