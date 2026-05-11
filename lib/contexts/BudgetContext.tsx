@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useEffect, useState, useMemo, useCallback } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Household,
   User,
@@ -83,6 +84,7 @@ export interface BudgetContextType {
 }
 
 const BudgetContext = createContext<BudgetContextType | undefined>(undefined);
+const START_NEW_HOUSEHOLD_KEY = 'pairwise:start-new-household';
 
 function emptySummary(): BudgetSummary {
   return {
@@ -104,12 +106,19 @@ function getErrorMessage(err: unknown, fallback: string): string {
 }
 
 export function BudgetProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [data, setData] = useState<BudgetStorageSchema | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [accessStatus, setAccessStatus] = useState<'loading' | 'ready' | 'needs_onboarding' | 'removed'>('loading');
   const [removedHouseholdName, setRemovedHouseholdName] = useState<string | undefined>();
+  const [isStartingNewHousehold, setIsStartingNewHousehold] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsStartingNewHousehold(window.localStorage.getItem(START_NEW_HOUSEHOLD_KEY) === 'true');
+  }, []);
 
   const reload = useCallback(async () => {
     setIsLoading(true);
@@ -121,6 +130,10 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       setIsAuthenticated(result.isAuthenticated);
       setAccessStatus(result.accessStatus);
       setRemovedHouseholdName(result.removedHouseholdName);
+      if (result.accessStatus === 'ready') {
+        window.localStorage.removeItem(START_NEW_HOUSEHOLD_KEY);
+        setIsStartingNewHousehold(false);
+      }
     } catch (err) {
       setError(getErrorMessage(err, 'Unable to load budget data'));
     } finally {
@@ -441,7 +454,13 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   ) => {
     const month = data?.currentMonth || new Date().toISOString().slice(0, 7);
     budgetRepository.createHouseholdSetup(household, users, incomeSources, categories, month)
-      .then((createdData) => setData(createdData))
+      .then((createdData) => {
+        window.localStorage.removeItem(START_NEW_HOUSEHOLD_KEY);
+        setIsStartingNewHousehold(false);
+        setAccessStatus('ready');
+        setRemovedHouseholdName(undefined);
+        setData(createdData);
+      })
       .catch((err) => handleRepositoryError(err, 'Unable to complete onboarding'));
   }, [data?.currentMonth, handleRepositoryError]);
 
@@ -467,6 +486,8 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   }, [data, handleRepositoryError]);
 
   const startNewHousehold = useCallback(() => {
+    window.localStorage.setItem(START_NEW_HOUSEHOLD_KEY, 'true');
+    setIsStartingNewHousehold(true);
     setData({
       ...INITIAL_STORAGE,
       currentMonth: new Date().toISOString().slice(0, 7),
@@ -474,14 +495,16 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     });
     setAccessStatus('needs_onboarding');
     setRemovedHouseholdName(undefined);
-    window.location.href = '/onboarding';
-  }, []);
+    router.push('/onboarding');
+  }, [router]);
 
   if (!data || isLoading) {
     return <AppLoadingScreen />;
   }
 
-  if (isAuthenticated && accessStatus === 'removed') {
+  const canStartNewHousehold = isStartingNewHousehold && pathname === '/onboarding';
+
+  if (isAuthenticated && accessStatus === 'removed' && !canStartNewHousehold) {
     return (
       <RemovedHouseholdScreen
         householdName={removedHouseholdName}
