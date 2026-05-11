@@ -131,7 +131,7 @@ export default function OnboardingWizard() {
         {/* Header */}
         <div className="mb-6 text-center sm:mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">Welcome to Pairwise</h1>
-          <p className="text-base text-gray-600 sm:text-lg">Let's set up your household budget in 6 steps</p>
+          <p className="text-base text-gray-600 sm:text-lg">Let&apos;s set up your household budget in 6 steps</p>
         </div>
 
         {/* Step Indicator */}

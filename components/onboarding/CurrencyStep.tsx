@@ -33,7 +33,7 @@ export default function CurrencyStep({ data, onUpdate }: CurrencyStepProps) {
   return (
     <div className="space-y-6">
       <p className="text-gray-600">
-        Select the currency you'll use for all transactions in this household.
+        Select the currency you&apos;ll use for all transactions in this household.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
