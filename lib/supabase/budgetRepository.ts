@@ -16,6 +16,8 @@ import type {
   User,
   MemberInviteResult,
   HouseholdInvite,
+  RecurringTransaction,
+  RecurringFrequency,
 } from '@/types';
 
 function freshInitialStorage(): BudgetStorageSchema {
@@ -159,6 +161,32 @@ function toSavingsContribution(row: any, users: User[]): SavingsContribution {
   };
 }
 
+function toRecurringTransaction(row: any): RecurringTransaction {
+  return {
+    id: row.id,
+    type: row.type,
+    name: row.name,
+    amount: Number(row.amount || 0),
+    sourceId: row.source_id || undefined,
+    sourceName: row.source_name || undefined,
+    categoryId: row.category_id || undefined,
+    categoryName: row.category_name || undefined,
+    needsOrWants: row.needs_or_wants || undefined,
+    userId: row.budget_member_id || '',
+    userName: row.user_name,
+    frequency: row.frequency,
+    startDate: row.start_date,
+    nextDueDate: row.next_due_date,
+    endDate: row.end_date || undefined,
+    notes: row.notes || undefined,
+    autoPost: Boolean(row.auto_post),
+    isActive: Boolean(row.is_active),
+    createdBy: row.created_by || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 function toAlert(row: any): Alert {
   return {
     id: row.id,
@@ -169,6 +197,35 @@ function toAlert(row: any): Alert {
     dismissed: Boolean(row.dismissed),
     createdAt: row.created_at,
   };
+}
+
+function addMonthsClamped(date: Date, months: number): Date {
+  const result = new Date(date);
+  const day = result.getDate();
+  result.setDate(1);
+  result.setMonth(result.getMonth() + months);
+  const lastDay = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
+  result.setDate(Math.min(day, lastDay));
+  return result;
+}
+
+export function getNextRecurringDueDate(date: string, frequency: RecurringFrequency): string {
+  const [year, month, day] = date.split('-').map(Number);
+  let next = new Date(year, month - 1, day);
+
+  if (frequency === 'weekly') {
+    next.setDate(next.getDate() + 7);
+  } else if (frequency === 'biweekly') {
+    next.setDate(next.getDate() + 14);
+  } else if (frequency === 'monthly') {
+    next = addMonthsClamped(next, 1);
+  } else if (frequency === 'quarterly') {
+    next = addMonthsClamped(next, 3);
+  } else {
+    next = addMonthsClamped(next, 12);
+  }
+
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
 }
 
 async function throwIfError<T>(result: { data: T; error: any }): Promise<T> {
@@ -218,7 +275,7 @@ export async function loadBudgetData(): Promise<{
     };
   }
 
-  const [household, members, invites, sources, categoryRows, incomes, expenses, goals, alerts] =
+  const [household, members, invites, sources, categoryRows, incomes, expenses, goals, recurring, alerts] =
     await Promise.all([
       throwIfError(await supabase.from('households').select('*').eq('id', householdId).single()),
       throwIfError(await supabase.from('budget_members' as any).select('*').eq('household_id', householdId).order('created_at')),
@@ -228,6 +285,7 @@ export async function loadBudgetData(): Promise<{
       throwIfError(await supabase.from('incomes').select('*').eq('household_id', householdId).order('date', { ascending: false })),
       throwIfError(await supabase.from('expenses').select('*').eq('household_id', householdId).order('date', { ascending: false })),
       throwIfError(await supabase.from('savings_goals').select('*').eq('household_id', householdId).order('created_at')),
+      throwIfError(await supabase.from('recurring_transactions' as any).select('*').eq('household_id', householdId).order('next_due_date')),
       throwIfError(await supabase.from('alerts').select('*').eq('household_id', householdId).order('created_at', { ascending: false })),
     ]);
 
@@ -264,6 +322,7 @@ export async function loadBudgetData(): Promise<{
       expenses: (expenses || []).map(toExpense),
       savingsGoals: (goals || []).map(toSavingsGoal),
       savingsContributions: (contributions || []).map((row: any) => toSavingsContribution(row, users)),
+      recurringTransactions: (recurring || []).map(toRecurringTransaction),
       alerts: (alerts || []).map(toAlert),
       onboardingCompleted: true,
     },
@@ -446,6 +505,128 @@ export async function deleteExpenseRow(expenseId: string): Promise<void> {
   await throwIfError(await createClient().from('expenses').delete().eq('id', expenseId));
 }
 
+export async function insertRecurringTransaction(
+  recurring: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>,
+  data: BudgetStorageSchema
+): Promise<RecurringTransaction> {
+  const householdId = requireHouseholdId(data);
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const row = await throwIfError(
+    await (supabase as any)
+      .from('recurring_transactions')
+      .insert({
+        household_id: householdId,
+        type: recurring.type,
+        name: recurring.name,
+        amount: recurring.amount,
+        source_id: recurring.type === 'income' ? recurring.sourceId || null : null,
+        source_name: recurring.type === 'income' ? recurring.sourceName || null : null,
+        category_id: recurring.type === 'expense' ? recurring.categoryId || null : null,
+        category_name: recurring.type === 'expense' ? recurring.categoryName || null : null,
+        needs_or_wants: recurring.type === 'expense' ? recurring.needsOrWants || 'needs' : null,
+        budget_member_id: recurring.userId || null,
+        user_name: recurring.userName,
+        frequency: recurring.frequency,
+        start_date: recurring.startDate,
+        next_due_date: recurring.nextDueDate,
+        end_date: recurring.endDate || null,
+        notes: recurring.notes || null,
+        auto_post: recurring.autoPost,
+        is_active: recurring.isActive,
+        created_by: user?.id || null,
+      })
+      .select('*')
+      .single()
+  );
+  return toRecurringTransaction(row);
+}
+
+export async function updateRecurringTransactionRow(
+  recurringId: string,
+  updates: Partial<RecurringTransaction>
+): Promise<RecurringTransaction> {
+  const row = await throwIfError(
+    await (createClient() as any)
+      .from('recurring_transactions')
+      .update({
+        type: updates.type,
+        name: updates.name,
+        amount: updates.amount,
+        source_id: updates.type === 'expense' ? null : updates.sourceId,
+        source_name: updates.type === 'expense' ? null : updates.sourceName,
+        category_id: updates.type === 'income' ? null : updates.categoryId,
+        category_name: updates.type === 'income' ? null : updates.categoryName,
+        needs_or_wants: updates.type === 'income' ? null : updates.needsOrWants,
+        budget_member_id: updates.userId,
+        user_name: updates.userName,
+        frequency: updates.frequency,
+        start_date: updates.startDate,
+        next_due_date: updates.nextDueDate,
+        end_date: updates.endDate ?? null,
+        notes: updates.notes ?? null,
+        auto_post: updates.autoPost,
+        is_active: updates.isActive,
+      })
+      .eq('id', recurringId)
+      .select('*')
+      .single()
+  );
+  return toRecurringTransaction(row);
+}
+
+export async function deleteRecurringTransactionRow(recurringId: string): Promise<void> {
+  await throwIfError(await (createClient() as any).from('recurring_transactions').delete().eq('id', recurringId));
+}
+
+export async function postRecurringTransaction(
+  recurring: RecurringTransaction,
+  data: BudgetStorageSchema
+): Promise<{ recurring: RecurringTransaction; income?: Income; expense?: Expense }> {
+  if (!recurring.isActive) {
+    throw new Error('This recurring item is inactive');
+  }
+
+  const nextDueDate = getNextRecurringDueDate(recurring.nextDueDate, recurring.frequency);
+  const shouldRemainActive = !recurring.endDate || nextDueDate <= recurring.endDate;
+
+  const posted = recurring.type === 'income'
+    ? await insertIncome({
+        amount: recurring.amount,
+        sourceId: recurring.sourceId || '',
+        sourceName: recurring.sourceName || recurring.name,
+        userId: recurring.userId,
+        userName: recurring.userName,
+        date: recurring.nextDueDate,
+        notes: recurring.notes ? `${recurring.name}: ${recurring.notes}` : recurring.name,
+        createdBy: recurring.createdBy || recurring.userId,
+      }, data)
+    : await insertExpense({
+        amount: recurring.amount,
+        categoryId: recurring.categoryId || '',
+        categoryName: recurring.categoryName || recurring.name,
+        needsOrWants: recurring.needsOrWants || 'needs',
+        userId: recurring.userId,
+        userName: recurring.userName,
+        date: recurring.nextDueDate,
+        notes: recurring.notes ? `${recurring.name}: ${recurring.notes}` : recurring.name,
+        createdBy: recurring.createdBy || recurring.userId,
+      }, data);
+
+  const updated = await updateRecurringTransactionRow(recurring.id, {
+    ...recurring,
+    nextDueDate,
+    isActive: shouldRemainActive,
+  });
+
+  return recurring.type === 'income'
+    ? { recurring: updated, income: posted as Income }
+    : { recurring: updated, expense: posted as Expense };
+}
+
 export async function insertIncomeSource(source: Omit<IncomeSource, 'id' | 'createdAt'>, data: BudgetStorageSchema): Promise<IncomeSource> {
   const householdId = requireHouseholdId(data);
   const row = await throwIfError(
@@ -474,6 +655,12 @@ export async function updateIncomeSourceRow(sourceId: string, updates: Partial<I
       await supabase
         .from('incomes')
         .update({ source_name: row.name } as any)
+        .eq('source_id', sourceId)
+    );
+    await throwIfError(
+      await (supabase as any)
+        .from('recurring_transactions')
+        .update({ source_name: row.name })
         .eq('source_id', sourceId)
     );
   }
@@ -647,6 +834,12 @@ export async function updateCategoryRow(categoryId: string, updates: Partial<Cat
       await supabase
         .from('expenses')
         .update({ category_name: row.name } as any)
+        .eq('category_id', categoryId)
+    );
+    await throwIfError(
+      await (supabase as any)
+        .from('recurring_transactions')
+        .update({ category_name: row.name })
         .eq('category_id', categoryId)
     );
   }

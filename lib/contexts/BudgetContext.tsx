@@ -18,6 +18,7 @@ import {
   IncomeBreakdown,
   MemberInviteResult,
   HouseholdInvite,
+  RecurringTransaction,
 } from '@/types';
 import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
@@ -38,6 +39,7 @@ export interface BudgetContextType {
   incomes: Income[];
   expenses: Expense[];
   savingsGoals: SavingsGoal[];
+  recurringTransactions: RecurringTransaction[];
   incomeSources: IncomeSource[];
   alerts: Alert[];
   onboardingCompleted: boolean;
@@ -59,6 +61,10 @@ export interface BudgetContextType {
   updateMonthlyCategory: (monthlyCategoryId: string, updates: Partial<MonthlyCategory>) => void;
   addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
   addSavingsContribution: (contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => void;
+  addRecurringTransaction: (recurring: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateRecurringTransaction: (recurringId: string, updates: Partial<RecurringTransaction>) => void;
+  deleteRecurringTransaction: (recurringId: string) => void;
+  postRecurringTransaction: (recurringId: string) => void;
   addIncomeSource: (source: Omit<IncomeSource, 'id' | 'createdAt'>) => void;
   updateIncomeSource: (sourceId: string, updates: Partial<IncomeSource>) => void;
   deleteIncomeSource: (sourceId: string) => void;
@@ -343,6 +349,51 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     setError('Savings contributions are not wired to Supabase yet.');
   }, []);
 
+  const addRecurringTransaction = useCallback((recurring: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!data) return;
+    budgetRepository.insertRecurringTransaction(recurring, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, recurringTransactions: [...prev.recurringTransactions, created] } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to add recurring item'));
+  }, [data, handleRepositoryError]);
+
+  const updateRecurringTransaction = useCallback((recurringId: string, updates: Partial<RecurringTransaction>) => {
+    budgetRepository.updateRecurringTransactionRow(recurringId, updates)
+      .then((updated) => setData((prev) => (prev ? {
+        ...prev,
+        recurringTransactions: prev.recurringTransactions.map((item) => item.id === recurringId ? updated : item),
+      } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to update recurring item'));
+  }, [handleRepositoryError]);
+
+  const deleteRecurringTransaction = useCallback((recurringId: string) => {
+    budgetRepository.deleteRecurringTransactionRow(recurringId)
+      .then(() => setData((prev) => (prev ? {
+        ...prev,
+        recurringTransactions: prev.recurringTransactions.filter((item) => item.id !== recurringId),
+      } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to delete recurring item'));
+  }, [handleRepositoryError]);
+
+  const postRecurringTransactionAction = useCallback((recurringId: string) => {
+    if (!data) return;
+    const recurring = data.recurringTransactions.find((item) => item.id === recurringId);
+    if (!recurring) return;
+
+    budgetRepository.postRecurringTransaction(recurring, data)
+      .then((result) => {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            recurringTransactions: prev.recurringTransactions.map((item) => item.id === recurringId ? result.recurring : item),
+            incomes: result.income ? [result.income, ...prev.incomes] : prev.incomes,
+            expenses: result.expense ? [result.expense, ...prev.expenses] : prev.expenses,
+          };
+        });
+      })
+      .catch((err) => handleRepositoryError(err, 'Unable to post recurring item'));
+  }, [data, handleRepositoryError]);
+
   const addIncomeSource = useCallback((source: Omit<IncomeSource, 'id' | 'createdAt'>) => {
     if (!data) return;
     budgetRepository.insertIncomeSource(source, data)
@@ -523,6 +574,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     incomes: data.incomes,
     expenses: data.expenses,
     savingsGoals: data.savingsGoals,
+    recurringTransactions: data.recurringTransactions,
     incomeSources: data.incomeSources,
     alerts: data.alerts,
     onboardingCompleted: data.onboardingCompleted,
@@ -544,6 +596,10 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     updateMonthlyCategory,
     addSavingsGoal,
     addSavingsContribution,
+    addRecurringTransaction,
+    updateRecurringTransaction,
+    deleteRecurringTransaction,
+    postRecurringTransaction: postRecurringTransactionAction,
     addIncomeSource,
     updateIncomeSource,
     deleteIncomeSource,

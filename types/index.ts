@@ -140,6 +140,32 @@ export interface SavingsContribution {
   createdAt: string;
 }
 
+export type RecurringFrequency = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly';
+
+export interface RecurringTransaction {
+  id: string;
+  type: 'income' | 'expense';
+  name: string;
+  amount: number;
+  sourceId?: string;
+  sourceName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  needsOrWants?: 'needs' | 'wants';
+  userId: string;
+  userName: string;
+  frequency: RecurringFrequency;
+  startDate: string;
+  nextDueDate: string;
+  endDate?: string;
+  notes?: string;
+  autoPost: boolean;
+  isActive: boolean;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Alert {
   id: string;
   type: 'category_warning' | 'category_exceeded' | 'total_exceeded' | 'info';

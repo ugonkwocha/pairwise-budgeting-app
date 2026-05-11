@@ -5,7 +5,7 @@ import { useBudget } from '@/lib/contexts/BudgetContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CreateMonthBudgetModal } from '@/components/budgets/CreateMonthBudgetModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
-import { FiArrowDownRight, FiArrowUpRight, FiCreditCard, FiPieChart } from 'react-icons/fi';
+import { FiArrowDownRight, FiArrowUpRight, FiCreditCard, FiPieChart, FiRepeat } from 'react-icons/fi';
 import {
   Area,
   AreaChart,
@@ -48,6 +48,7 @@ export default function DashboardPage() {
     users,
     expenses,
     incomes,
+    recurringTransactions,
     onboardingCompleted,
     createMonthlyBudgets,
   } = useBudget();
@@ -131,6 +132,10 @@ export default function DashboardPage() {
 
   const topCategories = [...categorySpending]
     .sort((a, b) => b.spent - a.spent)
+    .slice(0, 5);
+  const upcomingBills = recurringTransactions
+    .filter((item) => item.isActive && item.type === 'expense')
+    .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
     .slice(0, 5);
 
   const allocated = Math.max(budgetSummary.totalBudgeted, 0);
@@ -310,7 +315,7 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
           <Card className="border-slate-200 bg-white">
             <CardHeader>
               <CardTitle className="text-sm uppercase tracking-wide">Top Categories</CardTitle>
@@ -361,6 +366,45 @@ export default function DashboardPage() {
                 ))}
                 {incomeBreakdown.length === 0 && (
                   <p className="text-sm text-slate-500">No income recorded for this month.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-white">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm uppercase tracking-wide">Upcoming Bills</CardTitle>
+              <a href="/recurring" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Manage</a>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {upcomingBills.map((bill) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const due = new Date(`${bill.nextDueDate}T00:00:00`);
+                  const dueIn = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
+                  return (
+                    <div key={bill.id} className="flex items-start gap-3 rounded-lg bg-slate-50 px-4 py-3">
+                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-orange-50 text-orange-600">
+                        <FiRepeat className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="truncate font-medium text-slate-950">{bill.name}</p>
+                          <p className="shrink-0 text-sm font-semibold text-slate-950">
+                            {currencySymbol}
+                            {bill.amount.toFixed(2)}
+                          </p>
+                        </div>
+                        <p className={`mt-1 text-xs font-semibold ${dueIn < 0 ? 'text-red-600' : dueIn <= 7 ? 'text-orange-600' : 'text-slate-500'}`}>
+                          {dueIn === 0 ? 'Due today' : dueIn > 0 ? `Due in ${dueIn} day${dueIn === 1 ? '' : 's'}` : `${Math.abs(dueIn)} day${Math.abs(dueIn) === 1 ? '' : 's'} late`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+                {upcomingBills.length === 0 && (
+                  <p className="py-8 text-center text-sm text-slate-500">No upcoming recurring bills.</p>
                 )}
               </div>
             </CardContent>

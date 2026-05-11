@@ -8,6 +8,7 @@ import {
   Expense,
   SavingsGoal,
   SavingsContribution,
+  RecurringTransaction,
   Alert,
   HouseholdInvite,
 } from '@/types';
@@ -27,6 +28,7 @@ export interface BudgetStorageSchema {
   expenses: Expense[];
   savingsGoals: SavingsGoal[];
   savingsContributions: SavingsContribution[];
+  recurringTransactions: RecurringTransaction[];
   alerts: Alert[];
   onboardingCompleted: boolean;
   currentMonth: string;
@@ -46,6 +48,7 @@ export const INITIAL_STORAGE: BudgetStorageSchema = {
   expenses: [],
   savingsGoals: [],
   savingsContributions: [],
+  recurringTransactions: [],
   alerts: [],
   onboardingCompleted: false,
   currentMonth: new Date().toISOString().slice(0, 7),
