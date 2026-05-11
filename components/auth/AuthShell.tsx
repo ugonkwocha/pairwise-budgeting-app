@@ -12,7 +12,7 @@ interface AuthShellProps {
 export function AuthShell({ title, subtitle, children }: AuthShellProps) {
   return (
     <div className="min-h-screen bg-[#f7f9fd]">
-      <div className="grid min-h-screen lg:grid-cols-[480px_1fr]">
+      <div className="grid min-h-screen min-w-0 lg:grid-cols-[480px_1fr]">
         <aside className="hidden border-r border-slate-200 bg-white px-10 py-8 lg:flex lg:flex-col">
           <Link href="/login" className="text-lg font-bold tracking-wide text-blue-700">
             PAIRWISE
@@ -55,8 +55,8 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
           </div>
         </aside>
 
-        <main className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-          <div className="w-full max-w-md">
+        <main className="flex min-h-screen min-w-0 items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
+          <div className="w-full min-w-0 max-w-md">
             <div className="mb-8 text-center lg:text-left">
               <Link href="/login" className="mb-8 inline-block text-lg font-bold tracking-wide text-blue-700 lg:hidden">
                 PAIRWISE
@@ -65,7 +65,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
               <p className="mt-3 text-sm font-medium text-slate-500">{subtitle}</p>
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+            <div className="w-full min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
               {children}
             </div>
           </div>
@@ -96,7 +96,7 @@ export function AuthAlert({
 }
 
 export const authInputClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-950 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50';
+  'w-full min-w-0 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-950 shadow-sm transition placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-slate-50';
 
 export const authButtonClass =
   'w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300';
