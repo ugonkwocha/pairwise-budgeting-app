@@ -20,9 +20,11 @@ export default function BudgetsPage() {
     updateCategory,
     updateMonthlyCategory,
     household,
+    currentUser,
     onboardingCompleted,
     createMonthlyBudgets,
   } = useBudget();
+  const isPrimaryMember = currentUser?.role === 'primary';
 
   const [editMode, setEditMode] = useState<EditMode>('current');
   const [budgetValues, setBudgetValues] = useState<Map<string, number>>(new Map());
@@ -67,11 +69,8 @@ export default function BudgetsPage() {
 
   // Auto-dismiss success message after 3 seconds
   useEffect(() => {
-    console.log('showSuccess changed:', showSuccess);
     if (showSuccess) {
-      console.log('Setting timer to hide success message');
       const timer = setTimeout(() => {
-        console.log('Timer expired, hiding success message');
         setShowSuccess(false);
       }, 3000);
       return () => clearTimeout(timer);
@@ -91,23 +90,27 @@ export default function BudgetsPage() {
   }, [currentMonth, monthlyCategories, categories, onboardingCompleted]);
 
   const handleCreateBudget = () => {
+    if (!isPrimaryMember) return;
     createMonthlyBudgets(currentMonth);
     setShowCreateModal(false);
   };
 
   const handleBudgetChange = (categoryId: string, value: string) => {
+    if (!isPrimaryMember) return;
     const newBudgets = new Map(budgetValues);
     newBudgets.set(categoryId, parseFloat(value) || 0);
     setBudgetValues(newBudgets);
   };
 
   const handleCarryOverToggle = (categoryId: string) => {
+    if (!isPrimaryMember) return;
     const newCarryOvers = new Map(carryOverValues);
     newCarryOvers.set(categoryId, !newCarryOvers.get(categoryId));
     setCarryOverValues(newCarryOvers);
   };
 
   const handleSaveAll = async () => {
+    if (!isPrimaryMember) return;
     setIsSaving(true);
 
     if (editMode === 'template') {
@@ -143,8 +146,6 @@ export default function BudgetsPage() {
         }
       });
     }
-
-    console.log('Save complete, setting isSaving to false and showSuccess to true');
     setIsSaving(false);
     setShowSuccess(true);
   };
@@ -181,10 +182,12 @@ export default function BudgetsPage() {
               <div className="w-full min-w-0 xl:w-[520px]">
                 <MonthNavigation />
               </div>
-              <Button onClick={() => setShowAddCategoryModal(true)} className="inline-flex w-full items-center justify-center gap-2 sm:w-auto">
-                <FiPlus aria-hidden="true" />
-                Add Category
-              </Button>
+              {isPrimaryMember && (
+                <Button onClick={() => setShowAddCategoryModal(true)} className="inline-flex w-full items-center justify-center gap-2 sm:w-auto">
+                  <FiPlus aria-hidden="true" />
+                  Add Category
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -221,9 +224,11 @@ export default function BudgetsPage() {
 
         <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4">
           <p className="text-sm font-medium text-blue-900">
-            {editMode === 'current'
-              ? `Editing budgets for ${monthString} only. These changes won't affect future months.`
-              : 'Editing your budget template. All future months will use these amounts.'
+            {!isPrimaryMember
+              ? 'Only primary household members can change budget templates or monthly budget amounts.'
+              : editMode === 'current'
+                ? `Editing budgets for ${monthString} only. These changes won't affect future months.`
+                : 'Editing your budget template. All future months will use these amounts.'
             }
           </p>
         </div>
@@ -237,6 +242,7 @@ export default function BudgetsPage() {
               </p>
               <Button
                 onClick={() => setShowCreateModal(true)}
+                disabled={!isPrimaryMember}
               >
                 Create Budget
               </Button>
@@ -262,6 +268,7 @@ export default function BudgetsPage() {
                             step="0.01"
                             value={budgetValues.get(categoryId) || 0}
                             onChange={(e) => handleBudgetChange(categoryId, e.target.value)}
+                            disabled={!isPrimaryMember}
                             className="flex-1"
                           />
                           <span className="col-start-2 text-sm font-medium text-slate-500 sm:col-auto">/month</span>
@@ -273,6 +280,7 @@ export default function BudgetsPage() {
                           type="checkbox"
                           checked={carryOverValues.get(categoryId) || false}
                           onChange={() => handleCarryOverToggle(categoryId)}
+                          disabled={!isPrimaryMember}
                           className="rounded border-slate-300"
                         />
                         <span>Allow unused budget to carry over to next month</span>
@@ -301,7 +309,7 @@ export default function BudgetsPage() {
             <Button
               variant="primary"
               onClick={handleSaveAll}
-              disabled={isSaving}
+              disabled={isSaving || !isPrimaryMember}
               className="w-full py-3"
             >
               {isSaving ? 'Saving...' : 'Save All Changes'}

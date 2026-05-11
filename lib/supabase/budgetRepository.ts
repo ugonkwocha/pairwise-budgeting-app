@@ -109,7 +109,7 @@ function toIncome(row: any): Income {
     amount: Number(row.amount || 0),
     sourceId: row.source_id || '',
     sourceName: row.source_name,
-    userId: row.user_id || '',
+    userId: row.budget_member_id || row.user_id || '',
     userName: row.user_name,
     date: row.date,
     notes: row.notes || undefined,
@@ -125,7 +125,7 @@ function toExpense(row: any): Expense {
     categoryId: row.category_id || '',
     categoryName: row.category_name,
     needsOrWants: row.needs_or_wants,
-    userId: row.user_id || '',
+    userId: row.budget_member_id || row.user_id || '',
     userName: row.user_name,
     date: row.date,
     notes: row.notes || undefined,
@@ -342,20 +342,26 @@ export async function createHouseholdSetup(
 
 export async function insertIncome(income: Omit<Income, 'id' | 'createdAt'>, data: BudgetStorageSchema): Promise<Income> {
   const householdId = requireHouseholdId(data);
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const row = await throwIfError(
-    await createClient()
+    await supabase
       .from('incomes')
       .insert({
         household_id: householdId,
         amount: income.amount,
         source_id: income.sourceId || null,
         source_name: income.sourceName,
+        budget_member_id: income.userId || null,
         user_id: null,
         user_name: income.userName,
         date: income.date,
         notes: income.notes || null,
-        created_by: null,
-      })
+        created_by: user?.id || null,
+      } as any)
       .select('*')
       .single()
   );
@@ -370,10 +376,11 @@ export async function updateIncomeRow(incomeId: string, updates: Partial<Income>
         amount: updates.amount,
         source_id: updates.sourceId || undefined,
         source_name: updates.sourceName,
+        budget_member_id: updates.userId || undefined,
         user_name: updates.userName,
         date: updates.date,
         notes: updates.notes ?? null,
-      })
+      } as any)
       .eq('id', incomeId)
       .select('*')
       .single()
@@ -387,21 +394,27 @@ export async function deleteIncomeRow(incomeId: string): Promise<void> {
 
 export async function insertExpense(expense: Omit<Expense, 'id' | 'createdAt'>, data: BudgetStorageSchema): Promise<Expense> {
   const householdId = requireHouseholdId(data);
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   const row = await throwIfError(
-    await createClient()
+    await supabase
       .from('expenses')
       .insert({
         household_id: householdId,
         amount: expense.amount,
         category_id: expense.categoryId || null,
         category_name: expense.categoryName,
+        budget_member_id: expense.userId || null,
         user_id: null,
         user_name: expense.userName,
         date: expense.date,
         notes: expense.notes || null,
         needs_or_wants: expense.needsOrWants,
-        created_by: null,
-      })
+        created_by: user?.id || null,
+      } as any)
       .select('*')
       .single()
   );
@@ -416,11 +429,12 @@ export async function updateExpenseRow(expenseId: string, updates: Partial<Expen
         amount: updates.amount,
         category_id: updates.categoryId || undefined,
         category_name: updates.categoryName,
+        budget_member_id: updates.userId || undefined,
         user_name: updates.userName,
         date: updates.date,
         notes: updates.notes ?? null,
         needs_or_wants: updates.needsOrWants,
-      })
+      } as any)
       .eq('id', expenseId)
       .select('*')
       .single()
@@ -484,6 +498,7 @@ export async function insertCategory(category: Omit<Category, 'id' | 'createdAt'
         name: category.name,
         monthly_budget: category.monthlyBudget,
         carry_over_enabled: category.carryOverEnabled,
+        needs_or_wants: 'needs',
         icon: category.icon || null,
         color: category.color || null,
       } as any)

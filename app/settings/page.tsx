@@ -62,11 +62,13 @@ export default function SettingsPage() {
   const isPrimaryMember = currentUser?.role === 'primary';
 
   const handleEditUser = (user: User) => {
+    if (!isPrimaryMember) return;
     setSelectedUser(user);
     setIsEditUserOpen(true);
   };
 
   const handleDeleteUser = (user: User) => {
+    if (!isPrimaryMember) return;
     // Prevent deletion if it's the only member
     if (users.length === 1) {
       alert('Cannot delete the last member. At least one member is required.');
@@ -86,11 +88,13 @@ export default function SettingsPage() {
   };
 
   const handleEditSource = (source: IncomeSource) => {
+    if (!isPrimaryMember) return;
     setSelectedSource(source);
     setIsEditSourceOpen(true);
   };
 
   const handleDeleteSource = (source: IncomeSource) => {
+    if (!isPrimaryMember) return;
     // Check if there are income records with this source
     const relatedIncomes = incomes.filter((income) => income.sourceId === source.id);
     if (relatedIncomes.length > 0) {
@@ -105,11 +109,13 @@ export default function SettingsPage() {
   };
 
   const handleEditCategory = (category: Category) => {
+    if (!isPrimaryMember) return;
     setSelectedCategory(category);
     setIsEditCategoryOpen(true);
   };
 
   const handleDeleteCategory = (category: Category) => {
+    if (!isPrimaryMember) return;
     setSelectedCategory(category);
     setIsDeleteCategoryOpen(true);
   };
@@ -149,9 +155,11 @@ export default function SettingsPage() {
         <Card className="border-slate-200 bg-white">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Household Information</CardTitle>
-            <Button variant="secondary" size="sm" onClick={() => setIsEditHouseholdOpen(true)}>
-              Edit
-            </Button>
+            {isPrimaryMember && (
+              <Button variant="secondary" size="sm" onClick={() => setIsEditHouseholdOpen(true)}>
+                Edit
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             <div className="space-y-5">
@@ -243,29 +251,33 @@ export default function SettingsPage() {
                           Delete invite
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteUser(user)}
-                        disabled={users.length === 1 || user.role === 'primary'}
-                        className={
-                          users.length === 1 || user.role === 'primary'
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-red-600 hover:text-red-700'
-                        }
-                        title={
-                          users.length === 1
-                            ? 'Cannot delete the last member'
-                            : user.role === 'primary'
-                              ? 'Cannot delete the primary member'
-                              : 'Delete member'
-                        }
-                      >
-                        Delete
-                      </Button>
+                      {isPrimaryMember && (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user)}
+                            disabled={users.length === 1 || user.role === 'primary'}
+                            className={
+                              users.length === 1 || user.role === 'primary'
+                                ? 'text-gray-400 cursor-not-allowed'
+                                : 'text-red-600 hover:text-red-700'
+                            }
+                            title={
+                              users.length === 1
+                                ? 'Cannot delete the last member'
+                                : user.role === 'primary'
+                                  ? 'Cannot delete the primary member'
+                                  : 'Delete member'
+                            }
+                          >
+                            Delete
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                     );
@@ -279,9 +291,11 @@ export default function SettingsPage() {
         <Card className="border-slate-200 bg-white">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Income Sources</CardTitle>
-            <Button variant="primary" size="sm" onClick={() => setIsAddSourceOpen(true)}>
-              Add Source
-            </Button>
+            {isPrimaryMember && (
+              <Button variant="primary" size="sm" onClick={() => setIsAddSourceOpen(true)}>
+                Add Source
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {incomeSources.length === 0 ? (
@@ -299,35 +313,37 @@ export default function SettingsPage() {
                         <div className="mt-1 break-words text-sm text-slate-500">{source.description}</div>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditSource(source)}>
-                        Edit
-                      </Button>
-                      {(() => {
-                        const relatedIncomes = incomes.filter((income) => income.sourceId === source.id);
-                        const hasRelated = relatedIncomes.length > 0;
-                        return (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteSource(source)}
-                            disabled={hasRelated}
-                            className={
-                              hasRelated
-                                ? 'text-gray-400 cursor-not-allowed'
-                                : 'text-red-600 hover:text-red-700'
-                            }
-                            title={
-                              hasRelated
-                                ? `Cannot delete - ${relatedIncomes.length} income record(s) use this source`
-                                : 'Delete income source'
-                            }
-                          >
-                            Delete
-                          </Button>
-                        );
-                      })()}
-                    </div>
+                    {isPrimaryMember && (
+                      <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditSource(source)}>
+                          Edit
+                        </Button>
+                        {(() => {
+                          const relatedIncomes = incomes.filter((income) => income.sourceId === source.id);
+                          const hasRelated = relatedIncomes.length > 0;
+                          return (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteSource(source)}
+                              disabled={hasRelated}
+                              className={
+                                hasRelated
+                                  ? 'text-gray-400 cursor-not-allowed'
+                                  : 'text-red-600 hover:text-red-700'
+                              }
+                              title={
+                                hasRelated
+                                  ? `Cannot delete - ${relatedIncomes.length} income record(s) use this source`
+                                  : 'Delete income source'
+                              }
+                            >
+                              Delete
+                            </Button>
+                          );
+                        })()}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -338,9 +354,11 @@ export default function SettingsPage() {
         <Card className="border-slate-200 bg-white">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Expense Categories</CardTitle>
-            <Button variant="primary" size="sm" onClick={() => setIsAddCategoryOpen(true)}>
-              Add Category
-            </Button>
+            {isPrimaryMember && (
+              <Button variant="primary" size="sm" onClick={() => setIsAddCategoryOpen(true)}>
+                Add Category
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {categories.length === 0 ? (
@@ -370,19 +388,21 @@ export default function SettingsPage() {
                           </Badge>
                         )}
                       </div>
-                      <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
-                        <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCategory(category)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                      {isPrimaryMember && (
+                        <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
+                          <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteCategory(category)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
