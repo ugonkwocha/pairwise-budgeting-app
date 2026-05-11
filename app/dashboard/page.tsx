@@ -5,7 +5,7 @@ import { useBudget } from '@/lib/contexts/BudgetContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CreateMonthBudgetModal } from '@/components/budgets/CreateMonthBudgetModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
-import { FiArrowDownRight, FiArrowUpRight, FiCreditCard, FiPieChart, FiRepeat } from 'react-icons/fi';
+import { FiArrowDownRight, FiArrowUpRight, FiCreditCard, FiPieChart, FiRepeat, FiTarget } from 'react-icons/fi';
 import {
   Area,
   AreaChart,
@@ -49,6 +49,7 @@ export default function DashboardPage() {
     expenses,
     incomes,
     recurringTransactions,
+    savingsGoals,
     onboardingCompleted,
     createMonthlyBudgets,
   } = useBudget();
@@ -137,6 +138,9 @@ export default function DashboardPage() {
     .filter((item) => item.isActive && item.type === 'expense')
     .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
     .slice(0, 5);
+  const topSavingsGoals = [...savingsGoals]
+    .sort((a, b) => b.currentAmount / Math.max(b.targetAmount, 1) - a.currentAmount / Math.max(a.targetAmount, 1))
+    .slice(0, 4);
 
   const allocated = Math.max(budgetSummary.totalBudgeted, 0);
   const spent = Math.max(budgetSummary.totalSpent, 0);
@@ -405,6 +409,48 @@ export default function DashboardPage() {
                 })}
                 {upcomingBills.length === 0 && (
                   <p className="py-8 text-center text-sm text-slate-500">No upcoming recurring bills.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-5">
+          <Card className="border-slate-200 bg-white">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-sm uppercase tracking-wide">Savings Goals</CardTitle>
+              <a href="/savings" className="text-xs font-semibold text-blue-600 hover:text-blue-700">Manage</a>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {topSavingsGoals.map((goal) => {
+                  const goalProgress = goal.targetAmount > 0 ? Math.min((goal.currentAmount / goal.targetAmount) * 100, 100) : 0;
+                  return (
+                    <div key={goal.id} className="rounded-lg bg-slate-50 px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-600">
+                          <FiTarget className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-slate-950">{goal.name}</p>
+                          <p className="mt-1 text-xs font-medium text-slate-500">{goalProgress.toFixed(1)}% complete</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+                        <div className="h-full rounded-full bg-teal-500" style={{ width: `${goalProgress}%` }} />
+                      </div>
+                      <p className="mt-3 text-sm font-semibold text-slate-950">
+                        {currencySymbol}
+                        {goal.currentAmount.toFixed(2)}
+                        <span className="font-medium text-slate-400"> / {currencySymbol}{goal.targetAmount.toFixed(2)}</span>
+                      </p>
+                    </div>
+                  );
+                })}
+                {topSavingsGoals.length === 0 && (
+                  <p className="py-8 text-center text-sm text-slate-500 md:col-span-2 xl:col-span-4">
+                    No savings goals yet.
+                  </p>
                 )}
               </div>
             </CardContent>

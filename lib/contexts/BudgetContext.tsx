@@ -39,6 +39,7 @@ export interface BudgetContextType {
   incomes: Income[];
   expenses: Expense[];
   savingsGoals: SavingsGoal[];
+  savingsContributions: SavingsContribution[];
   recurringTransactions: RecurringTransaction[];
   incomeSources: IncomeSource[];
   alerts: Alert[];
@@ -60,7 +61,10 @@ export interface BudgetContextType {
   deleteCategory: (categoryId: string) => void;
   updateMonthlyCategory: (monthlyCategoryId: string, updates: Partial<MonthlyCategory>) => void;
   addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  updateSavingsGoal: (goalId: string, updates: Partial<SavingsGoal>) => void;
+  deleteSavingsGoal: (goalId: string) => void;
   addSavingsContribution: (contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => void;
+  deleteSavingsContribution: (contributionId: string) => void;
   addRecurringTransaction: (recurring: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateRecurringTransaction: (recurringId: string, updates: Partial<RecurringTransaction>) => void;
   deleteRecurringTransaction: (recurringId: string) => void;
@@ -341,13 +345,56 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       .catch((err) => handleRepositoryError(err, 'Unable to update monthly budget'));
   }, [handleRepositoryError]);
 
-  const addSavingsGoal = useCallback((_goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
-    setError('Savings goals are not wired to Supabase yet.');
-  }, []);
+  const addSavingsGoal = useCallback((goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!data) return;
+    budgetRepository.insertSavingsGoal(goal, data)
+      .then((created) => setData((prev) => (prev ? { ...prev, savingsGoals: [...prev.savingsGoals, created] } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to add savings goal'));
+  }, [data, handleRepositoryError]);
 
-  const addSavingsContribution = useCallback((_contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => {
-    setError('Savings contributions are not wired to Supabase yet.');
-  }, []);
+  const updateSavingsGoal = useCallback((goalId: string, updates: Partial<SavingsGoal>) => {
+    budgetRepository.updateSavingsGoalRow(goalId, updates)
+      .then((updated) => setData((prev) => (prev ? {
+        ...prev,
+        savingsGoals: prev.savingsGoals.map((goal) => goal.id === goalId ? updated : goal),
+      } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to update savings goal'));
+  }, [handleRepositoryError]);
+
+  const deleteSavingsGoal = useCallback((goalId: string) => {
+    budgetRepository.deleteSavingsGoalRow(goalId)
+      .then(() => setData((prev) => (prev ? {
+        ...prev,
+        savingsGoals: prev.savingsGoals.filter((goal) => goal.id !== goalId),
+        savingsContributions: prev.savingsContributions.filter((contribution) => contribution.goalId !== goalId),
+      } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to delete savings goal'));
+  }, [handleRepositoryError]);
+
+  const addSavingsContribution = useCallback((contribution: Omit<SavingsContribution, 'id' | 'createdAt'>) => {
+    if (!data) return;
+    budgetRepository.insertSavingsContribution(contribution, data)
+      .then(({ contribution: createdContribution, goal }) => setData((prev) => (prev ? {
+        ...prev,
+        savingsContributions: [createdContribution, ...prev.savingsContributions],
+        savingsGoals: prev.savingsGoals.map((item) => item.id === goal.id ? goal : item),
+      } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to add savings contribution'));
+  }, [data, handleRepositoryError]);
+
+  const deleteSavingsContribution = useCallback((contributionId: string) => {
+    if (!data) return;
+    const contribution = data.savingsContributions.find((item) => item.id === contributionId);
+    if (!contribution) return;
+
+    budgetRepository.deleteSavingsContributionRow(contribution)
+      .then((goal) => setData((prev) => (prev ? {
+        ...prev,
+        savingsContributions: prev.savingsContributions.filter((item) => item.id !== contributionId),
+        savingsGoals: prev.savingsGoals.map((item) => item.id === goal.id ? goal : item),
+      } : prev)))
+      .catch((err) => handleRepositoryError(err, 'Unable to delete savings contribution'));
+  }, [data, handleRepositoryError]);
 
   const addRecurringTransaction = useCallback((recurring: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!data) return;
@@ -574,6 +621,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     incomes: data.incomes,
     expenses: data.expenses,
     savingsGoals: data.savingsGoals,
+    savingsContributions: data.savingsContributions,
     recurringTransactions: data.recurringTransactions,
     incomeSources: data.incomeSources,
     alerts: data.alerts,
@@ -595,7 +643,10 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     deleteCategory,
     updateMonthlyCategory,
     addSavingsGoal,
+    updateSavingsGoal,
+    deleteSavingsGoal,
     addSavingsContribution,
+    deleteSavingsContribution,
     addRecurringTransaction,
     updateRecurringTransaction,
     deleteRecurringTransaction,

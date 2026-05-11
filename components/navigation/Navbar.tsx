@@ -14,6 +14,7 @@ import {
   FiPieChart,
   FiRepeat,
   FiSettings,
+  FiTarget,
   FiTrendingUp,
   FiX,
 } from 'react-icons/fi';
@@ -45,6 +46,7 @@ export default function Navbar() {
     { href: '/analytics', label: 'Analytics', icon: FiBarChart2 },
     { href: '/transactions', label: 'Transactions', icon: FiTrendingUp },
     { href: '/recurring', label: 'Recurring', icon: FiRepeat },
+    { href: '/savings', label: 'Savings', icon: FiTarget },
     { href: '/income', label: 'Income', icon: FiDollarSign },
     { href: '/expenses', label: 'Expenses', icon: FiCreditCard },
     { href: '/settings', label: 'Settings', icon: FiSettings },

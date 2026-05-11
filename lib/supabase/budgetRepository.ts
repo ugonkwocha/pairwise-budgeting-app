@@ -149,7 +149,7 @@ function toSavingsGoal(row: any): SavingsGoal {
 }
 
 function toSavingsContribution(row: any, users: User[]): SavingsContribution {
-  const user = users[0];
+  const user = users.find((member) => member.id === row.budget_member_id) || users[0];
   return {
     id: row.id,
     goalId: row.goal_id,
@@ -157,6 +157,7 @@ function toSavingsContribution(row: any, users: User[]): SavingsContribution {
     userId: user?.id || '',
     userName: user?.name || 'Household',
     date: row.date,
+    notes: row.notes || undefined,
     createdAt: row.created_at,
   };
 }
@@ -503,6 +504,110 @@ export async function updateExpenseRow(expenseId: string, updates: Partial<Expen
 
 export async function deleteExpenseRow(expenseId: string): Promise<void> {
   await throwIfError(await createClient().from('expenses').delete().eq('id', expenseId));
+}
+
+export async function insertSavingsGoal(
+  goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>,
+  data: BudgetStorageSchema
+): Promise<SavingsGoal> {
+  const householdId = requireHouseholdId(data);
+  const row = await throwIfError(
+    await createClient()
+      .from('savings_goals')
+      .insert({
+        household_id: householdId,
+        name: goal.name,
+        target_amount: goal.targetAmount,
+        current_amount: goal.currentAmount,
+        starting_amount: goal.currentAmount,
+        deadline: goal.deadline || null,
+      } as any)
+      .select('*')
+      .single()
+  );
+  return toSavingsGoal(row);
+}
+
+export async function updateSavingsGoalRow(goalId: string, updates: Partial<SavingsGoal>): Promise<SavingsGoal> {
+  const supabase = createClient();
+  const patch: Record<string, unknown> = {
+    name: updates.name,
+    target_amount: updates.targetAmount,
+    deadline: updates.deadline ?? null,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (typeof updates.currentAmount === 'number') {
+    const contributions = await throwIfError(
+      await supabase.from('savings_contributions').select('amount').eq('goal_id', goalId)
+    );
+    const contributionTotal = (contributions || []).reduce((sum: number, item: any) => sum + Number(item.amount || 0), 0);
+    patch.current_amount = updates.currentAmount;
+    patch.starting_amount = Math.max(updates.currentAmount - contributionTotal, 0);
+  }
+
+  const row = await throwIfError(
+    await supabase
+      .from('savings_goals')
+      .update(patch as any)
+      .eq('id', goalId)
+      .select('*')
+      .single()
+  );
+  return toSavingsGoal(row);
+}
+
+export async function deleteSavingsGoalRow(goalId: string): Promise<void> {
+  await throwIfError(await createClient().from('savings_goals').delete().eq('id', goalId));
+}
+
+export async function insertSavingsContribution(
+  contribution: Omit<SavingsContribution, 'id' | 'createdAt'>,
+  data: BudgetStorageSchema
+): Promise<{ contribution: SavingsContribution; goal: SavingsGoal }> {
+  const householdId = requireHouseholdId(data);
+  const supabase = createClient();
+  const row = await throwIfError(
+    await supabase
+      .from('savings_contributions')
+      .insert({
+        household_id: householdId,
+        goal_id: contribution.goalId,
+        amount: contribution.amount,
+        budget_member_id: contribution.userId || null,
+        date: contribution.date,
+        notes: contribution.notes || null,
+      } as any)
+      .select('*')
+      .single()
+  );
+
+  const goalRow = await throwIfError(
+    await supabase
+      .from('savings_goals')
+      .select('*')
+      .eq('id', contribution.goalId)
+      .single()
+  );
+
+  return {
+    contribution: toSavingsContribution(row, data.users),
+    goal: toSavingsGoal(goalRow),
+  };
+}
+
+export async function deleteSavingsContributionRow(contribution: SavingsContribution): Promise<SavingsGoal> {
+  const supabase = createClient();
+  await throwIfError(await supabase.from('savings_contributions').delete().eq('id', contribution.id));
+
+  const row = await throwIfError(
+    await supabase
+      .from('savings_goals')
+      .select('*')
+      .eq('id', contribution.goalId)
+      .single()
+  );
+  return toSavingsGoal(row);
 }
 
 export async function insertRecurringTransaction(
