@@ -43,7 +43,8 @@ export function SpendingByUserChart({ data }: SpendingByUserChartProps) {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <ResponsiveContainer width="100%" height={250}>
+      <div className="h-[240px] w-full sm:h-[250px]">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={chartData}
@@ -76,6 +77,7 @@ export function SpendingByUserChart({ data }: SpendingByUserChartProps) {
           <Legend wrapperStyle={{ paddingTop: '16px' }} />
         </PieChart>
       </ResponsiveContainer>
+      </div>
 
       {/* Member details */}
       <div className="mt-6 w-full">
@@ -88,7 +90,7 @@ export function SpendingByUserChart({ data }: SpendingByUserChartProps) {
                   className="w-3 h-3 rounded-full"
                   style={{ backgroundColor: USER_COLORS[index % USER_COLORS.length] }}
                 />
-                <div className="text-sm font-medium text-gray-900">{user.userName}</div>
+                <div className="min-w-0 break-words text-sm font-medium text-gray-900">{user.userName}</div>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>

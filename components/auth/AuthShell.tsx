@@ -55,17 +55,17 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
           </div>
         </aside>
 
-        <main className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-10">
+        <main className="flex min-h-screen items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center lg:text-left">
-              <Link href="/login" className="mb-10 inline-block text-lg font-bold tracking-wide text-blue-700 lg:hidden">
+              <Link href="/login" className="mb-8 inline-block text-lg font-bold tracking-wide text-blue-700 lg:hidden">
                 PAIRWISE
               </Link>
-              <h2 className="text-3xl font-semibold tracking-tight text-slate-950">{title}</h2>
+              <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">{title}</h2>
               <p className="mt-3 text-sm font-medium text-slate-500">{subtitle}</p>
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
               {children}
             </div>
           </div>

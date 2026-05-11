@@ -145,14 +145,14 @@ export default function DashboardPage() {
   ].filter((item) => item.value > 0);
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+    <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="mb-7">
           <div className="mb-6 text-xs font-medium text-slate-400">
             Dashboard <span className="mx-2">›</span> Budget
           </div>
           <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 xl:flex-row xl:items-end xl:justify-between">
-            <div>
+            <div className="min-w-0">
               <h1 className="text-2xl font-semibold text-slate-950">Budget</h1>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <p className="text-base font-medium text-slate-950">Hi {currentUser?.name?.split(' ')[0] || 'there'}</p>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                 </a>
               </div>
             </div>
-            <div className="min-w-0 xl:w-[520px]">
+            <div className="w-full min-w-0 xl:w-[520px]">
               <MonthNavigation />
             </div>
           </div>
@@ -209,12 +209,12 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_290px]">
           <Card className="border-slate-200 bg-white p-0">
-            <CardHeader className="mb-0 flex flex-row items-start justify-between border-b border-slate-100 p-5">
+            <CardHeader className="mb-0 flex flex-col gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <CardTitle className="text-sm uppercase tracking-wide">Summary</CardTitle>
                 <p className="mt-8 text-xs font-medium text-slate-500">Last 7 months</p>
               </div>
-              <div className="flex items-center gap-6 text-xs">
+              <div className="flex flex-wrap items-center gap-4 text-xs sm:gap-6">
                 <div>
                   <div className="flex items-center gap-2 text-slate-500">
                     <span className="h-2 w-2 rounded-full bg-blue-600" />
@@ -237,9 +237,9 @@ export default function DashboardPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="h-[320px] p-5">
+            <CardContent className="h-[260px] p-3 sm:h-[320px] sm:p-5">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendData} margin={{ top: 18, right: 18, left: -18, bottom: 0 }}>
+                <AreaChart data={trendData} margin={{ top: 18, right: 12, left: -24, bottom: 0 }}>
                   <defs>
                     <linearGradient id="incomeFill" x1="0" x2="0" y1="0" y2="1">
                       <stop offset="5%" stopColor="#2563eb" stopOpacity={0.16} />
@@ -251,8 +251,8 @@ export default function DashboardPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="#edf1f7" vertical={true} />
-                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9aa3b2', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9aa3b2', fontSize: 12 }} />
+                  <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9aa3b2', fontSize: 11 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9aa3b2', fontSize: 11 }} width={36} />
                   <Tooltip
                     contentStyle={{ border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 12px 28px rgba(15, 23, 42, 0.08)' }}
                     formatter={(value: number) => [`${currencySymbol}${Number(value).toFixed(2)}`, '']}
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-3 text-xs min-[420px]:grid-cols-2">
                 {budgetDonutData.map((item) => (
                   <div key={item.name} className="flex items-center gap-2 text-slate-500">
                     <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
@@ -319,9 +319,9 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {topCategories.map((cat) => (
                   <div key={cat.categoryId}>
-                    <div className="mb-2 flex items-center justify-between text-sm">
-                      <span className="font-medium text-slate-900">{cat.categoryName}</span>
-                      <span className="font-semibold text-slate-950">
+                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="min-w-0 font-medium text-slate-900">{cat.categoryName}</span>
+                      <span className="shrink-0 font-semibold text-slate-950">
                         {currencySymbol}
                         {cat.spent.toFixed(2)}
                       </span>
@@ -348,12 +348,12 @@ export default function DashboardPage() {
             <CardContent>
               <div className="space-y-4">
                 {incomeBreakdown.map((income) => (
-                  <div key={income.sourceId} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-                    <div>
+                  <div key={income.sourceId} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3">
+                    <div className="min-w-0">
                       <p className="font-medium text-slate-900">{income.sourceName}</p>
                       <p className="mt-1 text-xs font-medium text-slate-500">{income.percentage.toFixed(1)}% of income</p>
                     </div>
-                    <div className="text-sm font-semibold text-slate-950">
+                    <div className="shrink-0 text-sm font-semibold text-slate-950">
                       {currencySymbol}
                       {income.amount.toFixed(2)}
                     </div>

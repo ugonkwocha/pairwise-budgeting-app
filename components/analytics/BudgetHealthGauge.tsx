@@ -48,7 +48,7 @@ export function BudgetHealthGauge({ data }: BudgetHealthGaugeProps) {
   }
 
   return (
-    <div className="w-full h-64 flex flex-col items-center justify-center">
+    <div className="flex h-auto min-h-64 w-full flex-col items-center justify-center">
       <ResponsiveContainer width="100%" height={200}>
         <RadialBarChart
           cx="50%"

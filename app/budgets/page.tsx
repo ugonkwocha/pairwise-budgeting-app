@@ -164,18 +164,18 @@ export default function BudgetsPage() {
   const currency = household?.currency === 'NGN' ? '₦' : '$';
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+    <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="mb-7">
           <div className="mb-6 text-xs font-medium text-slate-400">
             Dashboard <span className="mx-2">›</span> Budgets
           </div>
           <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 xl:flex-row xl:items-end xl:justify-between">
-            <div>
+            <div className="min-w-0">
               <h1 className="text-2xl font-semibold text-slate-950">Budgets</h1>
               <p className="mt-6 text-base font-medium text-slate-950">Update this month or change the template for future months</p>
             </div>
-            <div className="min-w-0 xl:w-[520px]">
+            <div className="w-full min-w-0 xl:w-[520px]">
               <MonthNavigation />
             </div>
           </div>
@@ -188,10 +188,10 @@ export default function BudgetsPage() {
           </div>
         )}
 
-        <div className="mb-6 inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+        <div className="mb-6 grid w-full grid-cols-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm sm:inline-grid sm:w-auto sm:grid-cols-2">
           <button
             onClick={() => setEditMode('current')}
-            className={`rounded-md px-5 py-2 text-sm font-semibold transition-colors ${
+            className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors sm:px-5 ${
               editMode === 'current'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-950'
@@ -201,7 +201,7 @@ export default function BudgetsPage() {
           </button>
           <button
             onClick={() => setEditMode('template')}
-            className={`rounded-md px-5 py-2 text-sm font-semibold transition-colors ${
+            className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors sm:px-5 ${
               editMode === 'template'
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-950'
@@ -246,7 +246,7 @@ export default function BudgetsPage() {
                         <label className="mb-2 block text-sm font-semibold text-slate-900">
                           {item.name}
                         </label>
-                        <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-[auto_1fr] items-center gap-2 sm:flex">
                           <span className="font-semibold text-slate-900">{currency}</span>
                           <Input
                             type="number"
@@ -256,7 +256,7 @@ export default function BudgetsPage() {
                             onChange={(e) => handleBudgetChange(categoryId, e.target.value)}
                             className="flex-1"
                           />
-                          <span className="text-sm font-medium text-slate-500">/month</span>
+                          <span className="col-start-2 text-sm font-medium text-slate-500 sm:col-auto">/month</span>
                         </div>
                       </div>
 

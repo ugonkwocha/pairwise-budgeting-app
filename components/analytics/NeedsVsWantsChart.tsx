@@ -55,14 +55,14 @@ export function NeedsVsWantsChart({ data }: NeedsVsWantsChartProps) {
       </ResponsiveContainer>
 
       {/* Recommended Rule */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg w-full text-center">
+      <div className="mt-6 w-full rounded-lg border border-blue-200 bg-blue-50 p-4 text-center">
         <div className="text-xs text-blue-700 font-medium">
-          📋 Recommended: 50% Needs, 30% Wants, 20% Savings
+          Recommended: 50% Needs, 30% Wants, 20% Savings
         </div>
       </div>
 
       {/* Details */}
-      <div className="mt-4 grid grid-cols-2 gap-4 w-full">
+      <div className="mt-4 grid w-full grid-cols-1 gap-4 min-[420px]:grid-cols-2">
         <div className="text-center p-3 bg-gray-50 rounded-lg">
           <div className="text-2xl font-bold text-green-600">
             ${data.needs.toFixed(2)}

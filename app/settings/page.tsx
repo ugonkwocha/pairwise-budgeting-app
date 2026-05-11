@@ -77,7 +77,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+    <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="mb-7">
           <div className="mb-6 text-xs font-medium text-slate-400">
@@ -91,7 +91,7 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_1fr]">
         <Card className="border-slate-200 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+          <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Household Information</CardTitle>
             <Button variant="secondary" size="sm" onClick={() => setIsEditHouseholdOpen(true)}>
               Edit
@@ -113,7 +113,7 @@ export default function SettingsPage() {
 
         <div className="space-y-6">
         <Card className="border-slate-200 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+          <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Members</CardTitle>
             <Button variant="primary" size="sm" onClick={() => setIsAddUserOpen(true)}>
               Add Member
@@ -129,16 +129,16 @@ export default function SettingsPage() {
                     key={user.id}
                     className="flex flex-col gap-4 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-slate-900">{user.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="min-w-0 break-words font-medium text-slate-900">{user.name}</div>
                         <Badge variant={user.role === 'primary' ? 'success' : 'default'} size="sm">
                           {user.role}
                         </Badge>
                       </div>
-                      <div className="mt-1 text-sm text-slate-500">{user.email}</div>
+                      <div className="mt-1 break-all text-sm text-slate-500">{user.email}</div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
                       <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
                         Edit
                       </Button>
@@ -171,7 +171,7 @@ export default function SettingsPage() {
         </Card>
 
         <Card className="border-slate-200 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
+          <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Income Sources</CardTitle>
             <Button variant="primary" size="sm" onClick={() => setIsAddSourceOpen(true)}>
               Add Source
@@ -187,13 +187,13 @@ export default function SettingsPage() {
                     key={source.id}
                     className="flex flex-col gap-4 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex-1">
-                      <div className="font-medium text-slate-900">{source.name}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="break-words font-medium text-slate-900">{source.name}</div>
                       {source.description && (
-                        <div className="mt-1 text-sm text-slate-500">{source.description}</div>
+                        <div className="mt-1 break-words text-sm text-slate-500">{source.description}</div>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
                       <Button variant="ghost" size="sm" onClick={() => handleEditSource(source)}>
                         Edit
                       </Button>

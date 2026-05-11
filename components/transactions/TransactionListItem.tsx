@@ -18,8 +18,8 @@ export function TransactionListItem({ transaction, currency }: TransactionListIt
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 transition-colors hover:bg-slate-100">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
+      <div className="mb-2 flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           {isIncome ? (
             <Badge variant="success" size="sm">
               Income
@@ -39,15 +39,15 @@ export function TransactionListItem({ transaction, currency }: TransactionListIt
             </Badge>
           )}
         </div>
-        <div className={`text-lg font-semibold ${amountColor}`}>
+        <div className={`shrink-0 text-lg font-semibold ${amountColor}`}>
           {amountSign}
           {currency}
           {transaction.amount.toFixed(2)}
         </div>
       </div>
 
-      <div className="mb-2">
-        <div className="font-semibold text-slate-950">{transaction.categoryOrSource}</div>
+      <div className="mb-2 min-w-0">
+        <div className="break-words font-semibold text-slate-950">{transaction.categoryOrSource}</div>
         <div className="text-sm text-slate-500">
           {transaction.userName} · {new Date(transaction.date).toLocaleDateString()}
         </div>

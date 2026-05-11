@@ -61,8 +61,9 @@ export function CategoryTrendsChart({ data }: CategoryTrendsChartProps) {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <ResponsiveContainer width="100%" height={350}>
-        <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+      <div className="h-[310px] w-full sm:h-[350px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} margin={{ top: 5, right: 12, left: -24, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="month"
@@ -71,7 +72,7 @@ export function CategoryTrendsChart({ data }: CategoryTrendsChartProps) {
             textAnchor="end"
             height={80}
           />
-          <YAxis />
+          <YAxis width={36} tick={{ fontSize: 11 }} />
           <Tooltip
             formatter={(value) => `$${Number(value).toFixed(2)}`}
             contentStyle={{
@@ -93,6 +94,7 @@ export function CategoryTrendsChart({ data }: CategoryTrendsChartProps) {
           ))}
         </BarChart>
       </ResponsiveContainer>
+      </div>
 
       {/* Category summary */}
       <div className="mt-6 w-full">
@@ -110,7 +112,7 @@ export function CategoryTrendsChart({ data }: CategoryTrendsChartProps) {
                     className="w-3 h-3 rounded"
                     style={{ backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length] }}
                   />
-                  <div className="text-sm font-medium text-gray-900 truncate">{category.categoryName}</div>
+                  <div className="min-w-0 truncate text-sm font-medium text-gray-900">{category.categoryName}</div>
                 </div>
                 <div className="text-xs text-gray-600">
                   Total: ${total.toFixed(2)}

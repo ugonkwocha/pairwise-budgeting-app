@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+    <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="mb-7">
           <div className="mb-6 text-xs font-medium text-slate-400">
@@ -239,7 +239,7 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Two Column Layout: Budget Health & Needs vs Wants */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-8">
               <Card>
                 <CardHeader>
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Budget Health</h2>
@@ -298,17 +298,17 @@ export default function AnalyticsPage() {
                 <CardContent>
                   <div className="space-y-3">
                     {analytics.topCategories.map((category, index) => (
-                      <div key={category.categoryId} className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-b-0">
-                        <div className="flex items-center gap-3">
+                      <div key={category.categoryId} className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3 last:border-b-0">
+                        <div className="flex min-w-0 items-center gap-3">
                           <div className="text-sm font-medium text-slate-950">{index + 1}.</div>
-                          <div>
-                            <div className="font-medium text-slate-950">{category.categoryName}</div>
+                          <div className="min-w-0">
+                            <div className="break-words font-medium text-slate-950">{category.categoryName}</div>
                             <div className="text-xs text-gray-500">
                               {category.percentage.toFixed(1)}% of total spending
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="shrink-0 text-right">
                           <div className="font-semibold text-slate-950">
                             ${category.totalSpent.toFixed(2)}
                           </div>
@@ -326,8 +326,8 @@ export default function AnalyticsPage() {
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-950">Export Data</h2>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-slate-500">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <p className="min-w-0 text-sm text-slate-500">
                     Export your analytics and transaction data for further analysis
                   </p>
                   <ExportButton

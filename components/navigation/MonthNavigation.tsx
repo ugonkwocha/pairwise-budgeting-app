@@ -23,19 +23,19 @@ export default function MonthNavigation() {
   const isToday = currentMonth === currentMonthNow;
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
+    <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 shadow-sm">
       <Button
         variant="secondary"
         size="sm"
         onClick={handlePrevious}
-        className="flex items-center gap-2 border-0 shadow-none"
+        className="min-w-0 justify-center gap-1 border-0 px-2 shadow-none sm:gap-2 sm:px-3"
       >
-        <span>←</span>
-        Previous
+        <span aria-hidden="true">←</span>
+        <span className="hidden sm:inline">Previous</span>
       </Button>
 
-      <div className="flex items-center gap-3">
-        <h2 className="text-sm font-semibold text-slate-950 sm:text-base">
+      <div className="flex min-w-0 flex-col items-center gap-1 sm:flex-row sm:gap-3">
+        <h2 className="whitespace-nowrap text-center text-sm font-semibold text-slate-950 sm:text-base">
           {formatMonthDisplay(currentMonth)}
         </h2>
         {!isToday && (
@@ -43,6 +43,7 @@ export default function MonthNavigation() {
             variant="ghost"
             size="sm"
             onClick={handleToday}
+            className="px-2 py-1 text-xs"
           >
             Today
           </Button>
@@ -53,10 +54,10 @@ export default function MonthNavigation() {
         variant="secondary"
         size="sm"
         onClick={handleNext}
-        className="flex items-center gap-2 border-0 shadow-none"
+        className="min-w-0 justify-center gap-1 border-0 px-2 shadow-none sm:gap-2 sm:px-3"
       >
-        Next
-        <span>→</span>
+        <span className="hidden sm:inline">Next</span>
+        <span aria-hidden="true">→</span>
       </Button>
     </div>
   );

@@ -126,12 +126,12 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4 sm:p-6">
       <div className="w-full max-w-2xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Welcome to Pairwise</h1>
-          <p className="text-lg text-gray-600">Let's set up your household budget in 6 steps</p>
+        <div className="mb-6 text-center sm:mb-8">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">Welcome to Pairwise</h1>
+          <p className="text-base text-gray-600 sm:text-lg">Let's set up your household budget in 6 steps</p>
         </div>
 
         {/* Step Indicator */}
@@ -144,8 +144,8 @@ export default function OnboardingWizard() {
         )}
 
         {/* Step Content */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">{steps[currentStep].title}</h2>
+        <div className="mb-8 rounded-lg bg-white p-5 shadow-lg sm:p-8">
+          <h2 className="mb-6 text-xl font-semibold text-gray-900 sm:text-2xl">{steps[currentStep].title}</h2>
 
           <StepComponent
             data={{
@@ -164,7 +164,7 @@ export default function OnboardingWizard() {
         </div>
 
         {/* Navigation */}
-        <div className="flex gap-4 justify-between">
+        <div className="flex gap-3 justify-between sm:gap-4">
           <Button
             variant="secondary"
             onClick={handleBack}

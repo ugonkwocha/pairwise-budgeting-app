@@ -85,11 +85,11 @@ export function ExportButton({
   };
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-full sm:w-auto" ref={containerRef}>
       <Button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
-        className="flex items-center gap-2"
+        className="flex w-full items-center justify-center gap-2 sm:w-auto"
       >
         {isLoading ? 'Exporting...' : '📥 Export'}
       </Button>
@@ -103,7 +103,7 @@ export function ExportButton({
           />
 
           {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          <div className="absolute right-0 z-50 mt-2 w-full min-w-56 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-56">
             <button
               onClick={handleExportTransactions}
               disabled={isLoading}

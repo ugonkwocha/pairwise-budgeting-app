@@ -82,12 +82,12 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
         <h3 className="font-semibold text-gray-900">Time Period</h3>
 
         {/* Preset Buttons */}
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
           <Button
             variant={value.preset === '3months' ? 'primary' : 'secondary'}
             size="sm"
             onClick={() => handlePreset('3months')}
-            className="px-4"
+            className="justify-center px-3 sm:px-4"
           >
             Last 3 Months
           </Button>
@@ -95,7 +95,7 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
             variant={value.preset === '6months' ? 'primary' : 'secondary'}
             size="sm"
             onClick={() => handlePreset('6months')}
-            className="px-4"
+            className="justify-center px-3 sm:px-4"
           >
             Last 6 Months
           </Button>
@@ -103,7 +103,7 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
             variant={value.preset === '12months' ? 'primary' : 'secondary'}
             size="sm"
             onClick={() => handlePreset('12months')}
-            className="px-4"
+            className="justify-center px-3 sm:px-4"
           >
             Last 12 Months
           </Button>
@@ -111,7 +111,7 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
             variant={showCustom ? 'primary' : 'secondary'}
             size="sm"
             onClick={handleCustom}
-            className="px-4"
+            className="justify-center px-3 sm:px-4"
           >
             Custom
           </Button>

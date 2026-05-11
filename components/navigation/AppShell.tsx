@@ -19,7 +19,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#f7f9fd]">
       <Navbar />
-      <main className="lg:pl-64">{children}</main>
+      <main className="min-w-0 pb-8 lg:pl-64">{children}</main>
     </div>
   );
 }

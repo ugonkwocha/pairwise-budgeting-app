@@ -58,8 +58,9 @@ export function IncomeTrendsChart({ data }: IncomeTrendsChartProps) {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+      <div className="h-[280px] w-full sm:h-[300px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={chartData} margin={{ top: 5, right: 12, left: -24, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="month"
@@ -68,7 +69,7 @@ export function IncomeTrendsChart({ data }: IncomeTrendsChartProps) {
             textAnchor="end"
             height={80}
           />
-          <YAxis />
+          <YAxis width={36} tick={{ fontSize: 11 }} />
           <Tooltip
             formatter={(value) => `$${Number(value).toFixed(2)}`}
             contentStyle={{
@@ -105,6 +106,7 @@ export function IncomeTrendsChart({ data }: IncomeTrendsChartProps) {
           ))}
         </LineChart>
       </ResponsiveContainer>
+      </div>
 
       {/* Sources info */}
       {topSources.length > 0 && (
@@ -121,7 +123,7 @@ export function IncomeTrendsChart({ data }: IncomeTrendsChartProps) {
                       className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: SOURCE_COLORS[index % SOURCE_COLORS.length] }}
                     />
-                    <div className="text-sm font-medium text-gray-900">{source}</div>
+                    <div className="min-w-0 break-words text-sm font-medium text-gray-900">{source}</div>
                   </div>
                   <div className="text-xs text-gray-600">
                     Total: ${total.toFixed(2)} | Avg/Month: ${avg.toFixed(2)}

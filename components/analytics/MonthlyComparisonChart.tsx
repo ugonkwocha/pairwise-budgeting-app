@@ -30,8 +30,9 @@ export function MonthlyComparisonChart({ data }: MonthlyComparisonChartProps) {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <ResponsiveContainer width="100%" height={350}>
-        <ComposedChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+      <div className="h-[320px] w-full sm:h-[350px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: -24, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="monthDisplay"
@@ -39,8 +40,8 @@ export function MonthlyComparisonChart({ data }: MonthlyComparisonChartProps) {
             textAnchor="end"
             height={80}
           />
-          <YAxis yAxisId="left" />
-          <YAxis yAxisId="right" orientation="right" />
+          <YAxis yAxisId="left" width={36} tick={{ fontSize: 11 }} />
+          <YAxis yAxisId="right" orientation="right" width={36} tick={{ fontSize: 11 }} />
           <Tooltip
             formatter={(value) => {
               if (typeof value === 'number') {
@@ -78,9 +79,10 @@ export function MonthlyComparisonChart({ data }: MonthlyComparisonChartProps) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
 
       {/* Summary stats */}
-      <div className="mt-6 w-full grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="mt-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
           <div className="text-xs text-gray-600 mb-1">Total Income</div>
           <div className="text-xl font-bold text-green-600">

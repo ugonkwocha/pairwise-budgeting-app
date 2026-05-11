@@ -33,22 +33,22 @@ export default function IncomePage() {
   };
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-10">
+    <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
         <div className="mb-7">
           <div className="mb-6 text-xs font-medium text-slate-400">
             Dashboard <span className="mx-2">›</span> Income
           </div>
           <div className="flex flex-col gap-5 border-b border-slate-200 pb-6 xl:flex-row xl:items-end xl:justify-between">
-            <div>
+            <div className="min-w-0">
               <h1 className="text-2xl font-semibold text-slate-950">Income</h1>
               <p className="mt-6 text-base font-medium text-slate-950">Track household income sources</p>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="min-w-0 sm:w-[520px]">
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center xl:w-auto">
+              <div className="w-full min-w-0 sm:w-[520px]">
                 <MonthNavigation />
               </div>
-              <Button onClick={() => setIsAddModalOpen(true)} className="inline-flex items-center gap-2">
+              <Button onClick={() => setIsAddModalOpen(true)} className="inline-flex w-full items-center justify-center gap-2 sm:w-auto">
                 <FiPlus aria-hidden="true" />
                 Add Income
               </Button>
@@ -88,18 +88,18 @@ export default function IncomePage() {
                       key={income.id}
                       className="flex flex-col gap-4 rounded-lg bg-slate-50 px-4 py-3 transition hover:bg-slate-100 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div>
+                      <div className="min-w-0">
                         <div className="font-medium text-slate-900">{income.sourceName}</div>
                         <div className="mt-1 text-sm text-slate-500">
                           {new Date(income.date).toLocaleDateString()} • {income.userName}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-4 sm:justify-end">
-                        <div className="min-w-24 text-right font-semibold text-slate-950">
+                      <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between sm:justify-end">
+                        <div className="text-left font-semibold text-slate-950 min-[420px]:min-w-24 min-[420px]:text-right">
                           {currency}
                           {income.amount.toFixed(2)}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <Button variant="ghost" size="sm" onClick={() => handleEditIncome(income)}>
                             Edit
                           </Button>
