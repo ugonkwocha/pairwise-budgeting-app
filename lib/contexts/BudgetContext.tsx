@@ -121,6 +121,41 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     reload();
   }, [reload]);
 
+  useEffect(() => {
+    if (!isAuthenticated || !data?.household?.id) return;
+
+    let isMounted = true;
+    const householdId = data.household.id;
+
+    const verifyAccess = async () => {
+      try {
+        const hasAccess = await budgetRepository.hasActiveHouseholdAccess(householdId);
+        if (isMounted && !hasAccess) {
+          await reload();
+        }
+      } catch {
+        // Normal data reads will surface any actionable errors to the user.
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void verifyAccess();
+      }
+    };
+
+    window.addEventListener('focus', verifyAccess);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    const interval = window.setInterval(verifyAccess, 60_000);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', verifyAccess);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.clearInterval(interval);
+    };
+  }, [data?.household?.id, isAuthenticated, reload]);
+
   const budgetSummary = useMemo(() => {
     if (!data) return emptySummary();
     return calculateBudgetSummary(data.incomes, data.expenses, data.monthlyCategories, data.savingsContributions, data.currentMonth);

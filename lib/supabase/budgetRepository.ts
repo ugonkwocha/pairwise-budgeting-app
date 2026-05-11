@@ -244,6 +244,30 @@ export async function loadBudgetData(): Promise<{
   };
 }
 
+export async function hasActiveHouseholdAccess(householdId: string): Promise<boolean> {
+  const supabase = createClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    return false;
+  }
+
+  const memberships = await throwIfError(
+    await supabase
+      .from('household_members')
+      .select('id')
+      .eq('household_id', householdId)
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .limit(1)
+  );
+
+  return Boolean(memberships?.[0]);
+}
+
 export async function createHouseholdSetup(
   household: Household,
   users: User[],
@@ -528,7 +552,7 @@ export async function updateBudgetMember(userId: string, updates: Partial<User>)
 }
 
 export async function deleteBudgetMember(userId: string): Promise<void> {
-  await throwIfError(await createClient().from('budget_members' as any).delete().eq('id', userId));
+  await throwIfError(await (createClient() as any).rpc('remove_budget_member', { target_budget_member_id: userId }));
 }
 
 export async function updateHouseholdRow(household: Household): Promise<Household> {
