@@ -56,7 +56,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
         </aside>
 
         <main className="flex min-h-screen min-w-0 items-center justify-center px-4 py-8 sm:px-6 lg:px-10">
-          <div className="w-full min-w-0 max-w-md">
+          <div className="w-full min-w-0 max-w-[calc(100vw-2rem)] sm:max-w-md">
             <div className="mb-8 text-center lg:text-left">
               <Link href="/login" className="mb-8 inline-block text-lg font-bold tracking-wide text-blue-700 lg:hidden">
                 PAIRWISE
@@ -65,7 +65,7 @@ export function AuthShell({ title, subtitle, children }: AuthShellProps) {
               <p className="mt-3 text-sm font-medium text-slate-500">{subtitle}</p>
             </div>
 
-            <div className="w-full min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+            <div className="w-full min-w-0 max-w-full rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
               {children}
             </div>
           </div>

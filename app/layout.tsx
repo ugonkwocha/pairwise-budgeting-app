@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { BudgetProvider } from '@/lib/contexts/BudgetContext';
 import AppShell from '@/components/navigation/AppShell';
 import './globals.css';
@@ -6,6 +6,11 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Pairwise - Household Budgeting',
   description: 'Plan your money clearly, track spending honestly, and prevent overspending with shared visibility.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
