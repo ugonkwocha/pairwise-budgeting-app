@@ -28,6 +28,7 @@ function formatDate(value: string): string {
 export default function SettingsPage() {
   const {
     household,
+    currentUser,
     users,
     householdInvites,
     categories,
@@ -58,6 +59,7 @@ export default function SettingsPage() {
   const [selectedInvite, setSelectedInvite] = useState<HouseholdInvite | null>(null);
   const [selectedSource, setSelectedSource] = useState<IncomeSource | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const isPrimaryMember = currentUser?.role === 'primary';
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
@@ -121,6 +123,7 @@ export default function SettingsPage() {
   };
 
   const handleDeleteInvite = (invite: HouseholdInvite) => {
+    if (!isPrimaryMember) return;
     setSelectedInvite(invite);
     setIsDeleteInviteOpen(true);
   };
@@ -168,9 +171,11 @@ export default function SettingsPage() {
         <Card className="border-slate-200 bg-white">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Members</CardTitle>
-            <Button variant="primary" size="sm" onClick={() => setIsAddUserOpen(true)}>
-              Add Member
-            </Button>
+            {isPrimaryMember && (
+              <Button variant="primary" size="sm" onClick={() => setIsAddUserOpen(true)}>
+                Add Member
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
             {users.length === 0 ? (
@@ -221,14 +226,14 @@ export default function SettingsPage() {
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2 min-[420px]:flex min-[420px]:flex-wrap min-[420px]:justify-end">
-                      {invite && (isPendingInvite || isExpiredInvite) && (
+                      {isPrimaryMember && invite && (isPendingInvite || isExpiredInvite) && (
                         <>
                           <Button variant="ghost" size="sm" onClick={() => handleCopyInvite(invite)}>
                             Copy invite
                           </Button>
                         </>
                       )}
-                      {invite && (
+                      {isPrimaryMember && invite && (
                         <Button
                           variant="ghost"
                           size="sm"
