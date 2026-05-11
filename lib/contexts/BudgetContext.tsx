@@ -16,6 +16,7 @@ import {
   CategorySpending,
   IncomeBreakdown,
   MemberInviteResult,
+  HouseholdInvite,
 } from '@/types';
 import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
@@ -27,6 +28,7 @@ export interface BudgetContextType {
   household: Household | null;
   currentUser: User | null;
   users: User[];
+  householdInvites: HouseholdInvite[];
   categories: Category[];
   monthlyCategories: MonthlyCategory[];
   incomes: Income[];
@@ -61,6 +63,7 @@ export interface BudgetContextType {
   inviteUser: (user: Omit<User, 'id' | 'createdAt'>) => Promise<MemberInviteResult>;
   updateUser: (userId: string, updates: Partial<User>) => void;
   deleteUser: (userId: string) => void;
+  deleteInvite: (inviteId: string) => void;
   completeOnboarding: (
     household: Household,
     users: User[],
@@ -353,7 +356,17 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const invite = await budgetRepository.createHouseholdInvite(user, data);
-      setData((prev) => (prev ? { ...prev, users: [...prev.users, invite.member] } : prev));
+      setData((prev) => {
+        if (!prev) return prev;
+        const existingUser = prev.users.some((member) => member.id === invite.member.id);
+        return {
+          ...prev,
+          users: existingUser
+            ? prev.users.map((member) => (member.id === invite.member.id ? invite.member : member))
+            : [...prev.users, invite.member],
+          householdInvites: [invite.invite, ...prev.householdInvites.filter((item) => item.id !== invite.invite.id)],
+        };
+      });
       return invite;
     } catch (err) {
       const message = getErrorMessage(err, 'Unable to invite member');
@@ -370,8 +383,30 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
 
   const deleteUser = useCallback((userId: string) => {
     budgetRepository.deleteBudgetMember(userId)
-      .then(() => setData((prev) => (prev ? { ...prev, users: prev.users.filter((u) => u.id !== userId) } : prev)))
+      .then(() => setData((prev) => (prev ? {
+        ...prev,
+        users: prev.users.filter((u) => u.id !== userId),
+        householdInvites: prev.householdInvites.filter((invite) => invite.budgetMemberId !== userId),
+      } : prev)))
       .catch((err) => setError(getErrorMessage(err, 'Unable to delete member')));
+  }, []);
+
+  const deleteInvite = useCallback((inviteId: string) => {
+    budgetRepository.deleteHouseholdInvite(inviteId)
+      .then(() => setData((prev) => {
+        if (!prev) return prev;
+        const deletedInvite = prev.householdInvites.find((invite) => invite.id === inviteId);
+        const shouldRemovePlaceholder = Boolean(deletedInvite && !deletedInvite.acceptedAt && deletedInvite.budgetMemberId);
+
+        return {
+          ...prev,
+          householdInvites: prev.householdInvites.filter((invite) => invite.id !== inviteId),
+          users: shouldRemovePlaceholder
+            ? prev.users.filter((user) => user.id !== deletedInvite?.budgetMemberId)
+            : prev.users,
+        };
+      }))
+      .catch((err) => setError(getErrorMessage(err, 'Unable to delete invite')));
   }, []);
 
   const completeOnboarding = useCallback((
@@ -415,6 +450,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     household: data.household,
     currentUser: data.currentUser,
     users: data.users,
+    householdInvites: data.householdInvites,
     categories: data.categories,
     monthlyCategories: data.monthlyCategories,
     incomes: data.incomes,
@@ -449,6 +485,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     inviteUser,
     updateUser,
     deleteUser,
+    deleteInvite,
     completeOnboarding,
     dismissAlert,
     setCurrentMonth: setCurrentMonthData,

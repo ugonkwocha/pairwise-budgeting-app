@@ -19,9 +19,22 @@ export interface User {
 
 export interface MemberInviteResult {
   member: User;
+  invite: HouseholdInvite;
   inviteToken: string;
   inviteUrl: string;
   expiresAt: string;
+}
+
+export interface HouseholdInvite {
+  id: string;
+  householdId: string;
+  budgetMemberId?: string;
+  email: string;
+  role: 'primary' | 'member';
+  token: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  createdAt: string;
 }
 
 export interface IncomeSource {

@@ -13,10 +13,32 @@ import { EditCategoryModal } from '@/components/settings/EditCategoryModal';
 import { AddIncomeSourceModal } from '@/components/settings/AddIncomeSourceModal';
 import { EditIncomeSourceModal } from '@/components/settings/EditIncomeSourceModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
-import type { User, IncomeSource, Category } from '@/types';
+import type { User, IncomeSource, Category, HouseholdInvite } from '@/types';
+
+function getInviteStatus(invite?: HouseholdInvite): 'none' | 'pending' | 'accepted' | 'expired' {
+  if (!invite) return 'none';
+  if (invite.acceptedAt) return 'accepted';
+  return new Date(invite.expiresAt).getTime() < Date.now() ? 'expired' : 'pending';
+}
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+}
 
 export default function SettingsPage() {
-  const { household, users, categories, incomeSources, incomes, expenses, deleteUser, deleteIncomeSource, deleteCategory } = useBudget();
+  const {
+    household,
+    users,
+    householdInvites,
+    categories,
+    incomeSources,
+    incomes,
+    expenses,
+    deleteUser,
+    deleteInvite,
+    deleteIncomeSource,
+    deleteCategory,
+  } = useBudget();
 
   // Modal states
   const [isEditHouseholdOpen, setIsEditHouseholdOpen] = useState(false);
@@ -27,11 +49,13 @@ export default function SettingsPage() {
   const [isAddSourceOpen, setIsAddSourceOpen] = useState(false);
   const [isEditSourceOpen, setIsEditSourceOpen] = useState(false);
   const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
+  const [isDeleteInviteOpen, setIsDeleteInviteOpen] = useState(false);
   const [isDeleteSourceOpen, setIsDeleteSourceOpen] = useState(false);
   const [isDeleteCategoryOpen, setIsDeleteCategoryOpen] = useState(false);
 
   // Selected items for editing/deleting
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedInvite, setSelectedInvite] = useState<HouseholdInvite | null>(null);
   const [selectedSource, setSelectedSource] = useState<IncomeSource | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
@@ -88,6 +112,19 @@ export default function SettingsPage() {
     setIsDeleteCategoryOpen(true);
   };
 
+  const getInviteForUser = (user: User) =>
+    householdInvites.find((invite) => invite.budgetMemberId === user.id) ||
+    householdInvites.find((invite) => invite.email.toLowerCase() === user.email.toLowerCase());
+
+  const handleCopyInvite = async (invite: HouseholdInvite) => {
+    await navigator.clipboard.writeText(`${window.location.origin}/invite/${invite.token}`);
+  };
+
+  const handleDeleteInvite = (invite: HouseholdInvite) => {
+    setSelectedInvite(invite);
+    setIsDeleteInviteOpen(true);
+  };
+
   if (!household) {
     return <div>Loading...</div>;
   }
@@ -141,6 +178,14 @@ export default function SettingsPage() {
             ) : (
               <div className="space-y-3">
                 {users.map((user) => (
+                  (() => {
+                    const invite = getInviteForUser(user);
+                    const inviteStatus = getInviteStatus(invite);
+                    const isPendingInvite = inviteStatus === 'pending';
+                    const isExpiredInvite = inviteStatus === 'expired';
+                    const isAcceptedInvite = inviteStatus === 'accepted';
+
+                    return (
                   <div
                     key={user.id}
                     className="flex flex-col gap-4 rounded-lg bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -151,10 +196,48 @@ export default function SettingsPage() {
                         <Badge variant={user.role === 'primary' ? 'success' : 'default'} size="sm">
                           {user.role}
                         </Badge>
+                        {invite && inviteStatus !== 'none' && (
+                          <Badge
+                            variant={
+                              isAcceptedInvite
+                                ? 'success'
+                                : isExpiredInvite
+                                  ? 'danger'
+                                  : 'warning'
+                            }
+                            size="sm"
+                          >
+                            {isAcceptedInvite ? 'accepted invite' : isExpiredInvite ? 'invite expired' : 'invite pending'}
+                          </Badge>
+                        )}
                       </div>
                       <div className="mt-1 break-all text-sm text-slate-500">{user.email}</div>
+                      {invite && (
+                        <div className="mt-2 text-xs text-slate-500">
+                          {isAcceptedInvite
+                            ? `Accepted ${formatDate(invite.acceptedAt || invite.createdAt)}`
+                            : `Invite expires ${formatDate(invite.expiresAt)}`}
+                        </div>
+                      )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
+                    <div className="grid grid-cols-2 gap-2 min-[420px]:flex min-[420px]:flex-wrap min-[420px]:justify-end">
+                      {invite && (isPendingInvite || isExpiredInvite) && (
+                        <>
+                          <Button variant="ghost" size="sm" onClick={() => handleCopyInvite(invite)}>
+                            Copy invite
+                          </Button>
+                        </>
+                      )}
+                      {invite && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteInvite(invite)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Delete invite
+                        </Button>
+                      )}
                       <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)}>
                         Edit
                       </Button>
@@ -180,6 +263,8 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                   </div>
+                    );
+                  })()
                 ))}
               </div>
             )}
@@ -352,6 +437,22 @@ export default function SettingsPage() {
           onConfirm={() => deleteUser(selectedUser.id)}
           title="Delete Member"
           message={`Are you sure you want to delete ${selectedUser.name}? This action cannot be undone.`}
+        />
+      )}
+      {selectedInvite && (
+        <ConfirmDeleteModal
+          isOpen={isDeleteInviteOpen}
+          onClose={() => {
+            setIsDeleteInviteOpen(false);
+            setSelectedInvite(null);
+          }}
+          onConfirm={() => deleteInvite(selectedInvite.id)}
+          title="Delete Invite"
+          message={
+            selectedInvite.acceptedAt
+              ? `Delete the invite record for ${selectedInvite.email}? This will not remove the household member.`
+              : `Delete the invite for ${selectedInvite.email}? If they have not accepted yet, they will no longer be able to use this invite link.`
+          }
         />
       )}
       {selectedSource && (

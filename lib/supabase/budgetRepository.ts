@@ -15,6 +15,7 @@ import type {
   SavingsGoal,
   User,
   MemberInviteResult,
+  HouseholdInvite,
 } from '@/types';
 
 function freshInitialStorage(): BudgetStorageSchema {
@@ -49,6 +50,20 @@ function toUser(row: any): User {
     email: row.email,
     role: row.role,
     householdId: row.household_id,
+    createdAt: row.created_at,
+  };
+}
+
+function toHouseholdInvite(row: any): HouseholdInvite {
+  return {
+    id: row.id,
+    householdId: row.household_id,
+    budgetMemberId: row.budget_member_id || undefined,
+    email: row.email,
+    role: row.role,
+    token: row.token,
+    expiresAt: row.expires_at,
+    acceptedAt: row.accepted_at || undefined,
     createdAt: row.created_at,
   };
 }
@@ -195,10 +210,11 @@ export async function loadBudgetData(): Promise<{
     return { data: freshInitialStorage(), isAuthenticated: true };
   }
 
-  const [household, members, sources, categoryRows, incomes, expenses, goals, alerts] =
+  const [household, members, invites, sources, categoryRows, incomes, expenses, goals, alerts] =
     await Promise.all([
       throwIfError(await supabase.from('households').select('*').eq('id', householdId).single()),
       throwIfError(await supabase.from('budget_members' as any).select('*').eq('household_id', householdId).order('created_at')),
+      throwIfError(await supabase.from('invites' as any).select('*').eq('household_id', householdId).order('created_at', { ascending: false })),
       throwIfError(await supabase.from('income_sources').select('*').eq('household_id', householdId).order('created_at')),
       throwIfError(await supabase.from('categories').select('*').eq('household_id', householdId).order('created_at')),
       throwIfError(await supabase.from('incomes').select('*').eq('household_id', householdId).order('date', { ascending: false })),
@@ -231,6 +247,7 @@ export async function loadBudgetData(): Promise<{
       household: toHousehold(household),
       currentUser,
       users,
+      householdInvites: (invites || []).map(toHouseholdInvite),
       incomeSources: (sources || []).map(toIncomeSource),
       incomes: (incomes || []).map(toIncome),
       categories,
@@ -513,6 +530,7 @@ export async function createHouseholdInvite(
       })
       .single()
   ) as {
+    invite_id: string;
     member_id: string;
     household_id: string;
     name: string;
@@ -524,6 +542,17 @@ export async function createHouseholdInvite(
   };
 
   const inviteToken = row.invite_token;
+  const invite: HouseholdInvite = {
+    id: row.invite_id,
+    householdId: row.household_id,
+    budgetMemberId: row.member_id,
+    email: row.email,
+    role: row.role,
+    token: inviteToken,
+    expiresAt: row.invite_expires_at,
+    createdAt: new Date().toISOString(),
+  };
+
   return {
     member: {
       id: row.member_id,
@@ -533,6 +562,7 @@ export async function createHouseholdInvite(
       role: row.role,
       createdAt: row.created_at,
     },
+    invite,
     inviteToken,
     inviteUrl: `${window.location.origin}/invite/${inviteToken}`,
     expiresAt: row.invite_expires_at,
@@ -553,6 +583,10 @@ export async function updateBudgetMember(userId: string, updates: Partial<User>)
 
 export async function deleteBudgetMember(userId: string): Promise<void> {
   await throwIfError(await (createClient() as any).rpc('remove_budget_member', { target_budget_member_id: userId }));
+}
+
+export async function deleteHouseholdInvite(inviteId: string): Promise<void> {
+  await throwIfError(await (createClient() as any).rpc('delete_household_invite', { target_invite_id: inviteId }));
 }
 
 export async function updateHouseholdRow(household: Household): Promise<Household> {

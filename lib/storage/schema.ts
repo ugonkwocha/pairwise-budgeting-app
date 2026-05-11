@@ -9,6 +9,7 @@ import {
   SavingsGoal,
   SavingsContribution,
   Alert,
+  HouseholdInvite,
 } from '@/types';
 
 export const STORAGE_VERSION = 1;
@@ -18,6 +19,7 @@ export interface BudgetStorageSchema {
   household: Household | null;
   currentUser: User | null;
   users: User[];
+  householdInvites: HouseholdInvite[];
   incomeSources: IncomeSource[];
   incomes: Income[];
   categories: Category[];
@@ -36,6 +38,7 @@ export const INITIAL_STORAGE: BudgetStorageSchema = {
   household: null,
   currentUser: null,
   users: [],
+  householdInvites: [],
   incomeSources: [],
   incomes: [],
   categories: [],
