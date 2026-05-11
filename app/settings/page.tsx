@@ -8,18 +8,20 @@ import { Badge } from '@/components/ui/Badge';
 import { EditHouseholdModal } from '@/components/settings/EditHouseholdModal';
 import { AddUserModal } from '@/components/settings/AddUserModal';
 import { EditUserModal } from '@/components/settings/EditUserModal';
+import { AddCategoryModal } from '@/components/settings/AddCategoryModal';
 import { AddIncomeSourceModal } from '@/components/settings/AddIncomeSourceModal';
 import { EditIncomeSourceModal } from '@/components/settings/EditIncomeSourceModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
 import type { User, IncomeSource } from '@/types';
 
 export default function SettingsPage() {
-  const { household, users, incomeSources, incomes, deleteUser, deleteIncomeSource } = useBudget();
+  const { household, users, categories, incomeSources, incomes, deleteUser, deleteIncomeSource } = useBudget();
 
   // Modal states
   const [isEditHouseholdOpen, setIsEditHouseholdOpen] = useState(false);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isAddSourceOpen, setIsAddSourceOpen] = useState(false);
   const [isEditSourceOpen, setIsEditSourceOpen] = useState(false);
   const [isDeleteUserOpen, setIsDeleteUserOpen] = useState(false);
@@ -228,6 +230,47 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        <Card className="border-slate-200 bg-white">
+          <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+            <CardTitle className="text-sm uppercase tracking-wide">Expense Categories</CardTitle>
+            <Button variant="primary" size="sm" onClick={() => setIsAddCategoryOpen(true)}>
+              Add Category
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {categories.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-500">No categories yet. Add one to start tracking expenses.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {categories.map((category) => (
+                  <div key={category.id} className="rounded-lg bg-slate-50 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="h-3 w-3 shrink-0 rounded-full"
+                            style={{ backgroundColor: category.color || '#2563eb' }}
+                          />
+                          <div className="break-words font-medium text-slate-900">{category.name}</div>
+                        </div>
+                        <div className="mt-2 text-sm text-slate-500">
+                          {household.currency === 'NGN' ? '₦' : '$'}
+                          {category.monthlyBudget.toFixed(2)} monthly budget
+                        </div>
+                      </div>
+                      {category.carryOverEnabled && (
+                        <Badge variant="info" size="sm">
+                          Carry over
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
         </div>
         </div>
       </div>
@@ -249,6 +292,7 @@ export default function SettingsPage() {
         />
       )}
       <AddIncomeSourceModal isOpen={isAddSourceOpen} onClose={() => setIsAddSourceOpen(false)} />
+      <AddCategoryModal isOpen={isAddCategoryOpen} onClose={() => setIsAddCategoryOpen(false)} />
       {selectedSource && (
         <EditIncomeSourceModal
           isOpen={isEditSourceOpen}

@@ -200,9 +200,23 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       .catch((err) => setError(getErrorMessage(err, 'Unable to delete expense')));
   }, []);
 
-  const addCategory = useCallback((_category: Omit<Category, 'id' | 'createdAt'>) => {
-    setError('Adding categories after onboarding is not wired yet.');
-  }, []);
+  const addCategory = useCallback((category: Omit<Category, 'id' | 'createdAt'>) => {
+    if (!data) return;
+    budgetRepository.insertCategory(category, data)
+      .then(({ category: createdCategory, monthlyCategory }) => {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            categories: [...prev.categories, createdCategory],
+            monthlyCategories: monthlyCategory
+              ? [...prev.monthlyCategories, monthlyCategory]
+              : prev.monthlyCategories,
+          };
+        });
+      })
+      .catch((err) => setError(getErrorMessage(err, 'Unable to add category')));
+  }, [data]);
 
   const updateCategory = useCallback((categoryId: string, updates: Partial<Category>) => {
     budgetRepository.updateCategoryRow(categoryId, updates)

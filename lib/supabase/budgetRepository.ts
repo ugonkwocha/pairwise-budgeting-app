@@ -410,6 +410,49 @@ export async function deleteIncomeSourceRow(sourceId: string): Promise<void> {
   await throwIfError(await createClient().from('income_sources').delete().eq('id', sourceId));
 }
 
+export async function insertCategory(category: Omit<Category, 'id' | 'createdAt'>, data: BudgetStorageSchema): Promise<{
+  category: Category;
+  monthlyCategory: MonthlyCategory | null;
+}> {
+  const householdId = requireHouseholdId(data);
+  const supabase = createClient();
+  const row = await throwIfError(
+    await supabase
+      .from('categories')
+      .insert({
+        household_id: householdId,
+        name: category.name,
+        monthly_budget: category.monthlyBudget,
+        carry_over_enabled: category.carryOverEnabled,
+        icon: category.icon || null,
+        color: category.color || null,
+      } as any)
+      .select('*')
+      .single()
+  );
+  const createdCategory = toCategory(row);
+
+  const monthlyRow = await throwIfError(
+    await supabase
+      .from('monthly_categories')
+      .insert({
+        household_id: householdId,
+        category_id: createdCategory.id,
+        month: data.currentMonth,
+        budget: createdCategory.monthlyBudget,
+        current_spent: 0,
+        carry_over_amount: 0,
+      } as any)
+      .select('*')
+      .single()
+  );
+
+  return {
+    category: createdCategory,
+    monthlyCategory: monthlyRow ? toMonthlyCategory(monthlyRow, [createdCategory]) : null,
+  };
+}
+
 export async function insertBudgetMember(user: Omit<User, 'id' | 'createdAt'>, data: BudgetStorageSchema): Promise<User> {
   const householdId = requireHouseholdId(data);
   const row = await throwIfError(

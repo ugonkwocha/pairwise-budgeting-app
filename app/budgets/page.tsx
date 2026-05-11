@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CreateMonthBudgetModal } from '@/components/budgets/CreateMonthBudgetModal';
+import { AddCategoryModal } from '@/components/settings/AddCategoryModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
-import { FiCheckCircle, FiPieChart } from 'react-icons/fi';
+import { FiCheckCircle, FiPieChart, FiPlus } from 'react-icons/fi';
 
 type EditMode = 'current' | 'template';
 
@@ -29,6 +30,7 @@ export default function BudgetsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
 
   // Get current month's categories
   const currentMonthCategories = monthlyCategories.filter((mc) => mc.month === currentMonth);
@@ -175,8 +177,14 @@ export default function BudgetsPage() {
               <h1 className="text-2xl font-semibold text-slate-950">Budgets</h1>
               <p className="mt-6 text-base font-medium text-slate-950">Update this month or change the template for future months</p>
             </div>
-            <div className="w-full min-w-0 xl:w-[520px]">
-              <MonthNavigation />
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center xl:w-auto">
+              <div className="w-full min-w-0 xl:w-[520px]">
+                <MonthNavigation />
+              </div>
+              <Button onClick={() => setShowAddCategoryModal(true)} className="inline-flex w-full items-center justify-center gap-2 sm:w-auto">
+                <FiPlus aria-hidden="true" />
+                Add Category
+              </Button>
             </div>
           </div>
         </div>
@@ -307,6 +315,10 @@ export default function BudgetsPage() {
         onClose={() => setShowCreateModal(false)}
         month={currentMonth}
         onConfirm={handleCreateBudget}
+      />
+      <AddCategoryModal
+        isOpen={showAddCategoryModal}
+        onClose={() => setShowAddCategoryModal(false)}
       />
     </div>
   );
