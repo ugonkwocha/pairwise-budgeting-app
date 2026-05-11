@@ -179,6 +179,8 @@ async function throwIfError<T>(result: { data: T; error: any }): Promise<T> {
 export async function loadBudgetData(): Promise<{
   data: BudgetStorageSchema;
   isAuthenticated: boolean;
+  accessStatus: 'ready' | 'needs_onboarding' | 'removed';
+  removedHouseholdName?: string;
 }> {
   const supabase = createClient();
   const {
@@ -187,7 +189,7 @@ export async function loadBudgetData(): Promise<{
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return { data: freshInitialStorage(), isAuthenticated: false };
+    return { data: freshInitialStorage(), isAuthenticated: false, accessStatus: 'needs_onboarding' };
   }
 
   await supabase.from('profiles').upsert({
@@ -196,18 +198,24 @@ export async function loadBudgetData(): Promise<{
     name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
   } as any);
 
-  const memberships = await throwIfError(
-    await supabase
-      .from('household_members')
-      .select('household_id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .limit(1)
-  );
+  const accessRows = await throwIfError(
+    await (supabase as any).rpc('get_my_household_access_status')
+  ) as Array<{
+    household_id: string | null;
+    household_name: string | null;
+    status: 'active' | 'invited' | 'removed' | null;
+    role: 'primary' | 'member' | null;
+  }>;
 
-  const householdId = memberships?.[0]?.household_id;
+  const access = accessRows?.[0];
+  const householdId = access?.status === 'active' ? access.household_id : null;
   if (!householdId) {
-    return { data: freshInitialStorage(), isAuthenticated: true };
+    return {
+      data: freshInitialStorage(),
+      isAuthenticated: true,
+      accessStatus: access?.status === 'removed' ? 'removed' : 'needs_onboarding',
+      removedHouseholdName: access?.status === 'removed' ? access.household_name || undefined : undefined,
+    };
   }
 
   const [household, members, invites, sources, categoryRows, incomes, expenses, goals, alerts] =
@@ -242,6 +250,7 @@ export async function loadBudgetData(): Promise<{
 
   return {
     isAuthenticated: true,
+    accessStatus: 'ready',
     data: {
       ...freshInitialStorage(),
       household: toHousehold(household),
