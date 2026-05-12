@@ -551,7 +551,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     incomeSources: IncomeSource[],
     categories: Category[]
   ) => {
-    const month = data?.currentMonth || getCurrentLocalMonth();
+    const month = getCurrentLocalMonth();
     budgetRepository.createHouseholdSetup(household, users, incomeSources, categories, month)
       .then((createdData) => {
         window.localStorage.removeItem(START_NEW_HOUSEHOLD_KEY);
@@ -561,7 +561,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
         setData(createdData);
       })
       .catch((err) => handleRepositoryError(err, 'Unable to complete onboarding'));
-  }, [data?.currentMonth, handleRepositoryError]);
+  }, [handleRepositoryError]);
 
   const dismissAlert = useCallback((alertId: string) => {
     budgetRepository.dismissAlertRow(alertId)
