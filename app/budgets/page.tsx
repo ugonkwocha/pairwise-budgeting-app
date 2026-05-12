@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { CreateMonthBudgetModal } from '@/components/budgets/CreateMonthBudgetModal';
 import { AddCategoryModal } from '@/components/settings/AddCategoryModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
+import { formatLocalMonth } from '@/lib/utils/dateUtils';
 import { FiCheckCircle, FiPieChart, FiPlus } from 'react-icons/fi';
 
 type EditMode = 'current' | 'template';
@@ -162,8 +163,7 @@ export default function BudgetsPage() {
     };
   });
 
-  const monthDate = new Date(currentMonth + '-01');
-  const monthString = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const monthString = formatLocalMonth(currentMonth, { month: 'long', year: 'numeric' });
   const currency = household?.currency === 'NGN' ? '₦' : '$';
 
   return (

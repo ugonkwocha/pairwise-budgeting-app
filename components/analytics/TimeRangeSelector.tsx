@@ -6,6 +6,7 @@ import { Select } from '@/components/ui/Select';
 import type { TimeRange } from '@/types';
 import { getPresetRange, getMonthsInRange } from '@/lib/utils/dateRangeUtils';
 import { getCurrentMonth } from '@/lib/utils/monthUtils';
+import { formatLocalMonth } from '@/lib/utils/dateUtils';
 
 interface TimeRangeSelectorProps {
   value: TimeRange;
@@ -72,8 +73,7 @@ export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
   }
 
   const formatMonth = (monthStr: string): string => {
-    const date = new Date(`${monthStr}-01`);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return formatLocalMonth(monthStr, { month: 'short', year: 'numeric' });
   };
 
   return (

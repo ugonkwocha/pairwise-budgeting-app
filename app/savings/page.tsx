@@ -8,10 +8,11 @@ import { useBudget } from '@/lib/contexts/BudgetContext';
 import { SavingsGoalModal } from '@/components/savings/SavingsGoalModal';
 import { SavingsContributionModal } from '@/components/savings/SavingsContributionModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
+import { formatLocalDate } from '@/lib/utils/dateUtils';
 import type { SavingsContribution, SavingsGoal } from '@/types';
 
 function formatDate(value: string) {
-  return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
+  return formatLocalDate(value, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { INITIAL_STORAGE } from '@/lib/storage/schema';
+import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 import type { BudgetStorageSchema } from '@/lib/storage/schema';
 import type {
   Alert,
@@ -23,7 +24,7 @@ import type {
 function freshInitialStorage(): BudgetStorageSchema {
   return {
     ...INITIAL_STORAGE,
-    currentMonth: new Date().toISOString().slice(0, 7),
+    currentMonth: getCurrentLocalMonth(),
     lastMonthCheck: new Date().toISOString(),
   };
 }

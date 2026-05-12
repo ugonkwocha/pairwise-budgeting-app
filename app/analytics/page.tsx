@@ -24,13 +24,13 @@ import {
   calculateTopSpendingCategories,
 } from '@/lib/calculations/analyticsCalculations';
 import { getMonthsInRange, getCurrentMonth } from '@/lib/utils/dateRangeUtils';
+import { getPreviousMonth } from '@/lib/utils/monthUtils';
 
 export default function AnalyticsPage() {
   const { expenses, incomes, categories, users, household, budgetSummary, categorySpending } = useBudget();
   const [timeRange, setTimeRange] = useState<TimeRange>(() => {
     const currentMonth = getCurrentMonth();
-    const threeMonthsAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    const startMonth = `${threeMonthsAgo.getFullYear()}-${String(threeMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
+    const startMonth = getPreviousMonth(getPreviousMonth(currentMonth));
     return {
       startMonth,
       endMonth: currentMonth,

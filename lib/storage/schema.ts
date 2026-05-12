@@ -12,6 +12,7 @@ import {
   Alert,
   HouseholdInvite,
 } from '@/types';
+import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 
 export const STORAGE_VERSION = 1;
 
@@ -51,6 +52,6 @@ export const INITIAL_STORAGE: BudgetStorageSchema = {
   recurringTransactions: [],
   alerts: [],
   onboardingCompleted: false,
-  currentMonth: new Date().toISOString().slice(0, 7),
+  currentMonth: getCurrentLocalMonth(),
   lastMonthCheck: new Date().toISOString(),
 };

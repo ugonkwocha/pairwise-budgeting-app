@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { useBudget } from '@/lib/contexts/BudgetContext';
+import { getLocalDateString } from '@/lib/utils/dateUtils';
 import type { SavingsGoal } from '@/types';
 
 interface SavingsContributionModalProps {
@@ -15,17 +16,12 @@ interface SavingsContributionModalProps {
   goal?: SavingsGoal | null;
 }
 
-function todayString() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
-
 export function SavingsContributionModal({ isOpen, onClose, goal }: SavingsContributionModalProps) {
   const { addSavingsContribution, savingsGoals, users, currentUser, currentMonth } = useBudget();
   const [goalId, setGoalId] = useState('');
   const [amount, setAmount] = useState('');
   const [userId, setUserId] = useState('');
-  const [date, setDate] = useState(todayString());
+  const [date, setDate] = useState(getLocalDateString());
   const [notes, setNotes] = useState('');
 
   const selectedGoal = useMemo(() => savingsGoals.find((item) => item.id === goalId), [goalId, savingsGoals]);
@@ -34,7 +30,7 @@ export function SavingsContributionModal({ isOpen, onClose, goal }: SavingsContr
   useEffect(() => {
     if (!isOpen) return;
 
-    const today = todayString();
+    const today = getLocalDateString();
     setGoalId(goal?.id || savingsGoals[0]?.id || '');
     setAmount('');
     setUserId(currentUser?.id || users[0]?.id || '');

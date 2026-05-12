@@ -1,6 +1,7 @@
 'use client';
 
 import type { TransactionStats } from '@/types';
+import { formatLocalDate } from '@/lib/utils/dateUtils';
 
 interface TransactionStatsSummaryProps {
   stats: TransactionStats;
@@ -10,8 +11,7 @@ interface TransactionStatsSummaryProps {
 export function TransactionStatsSummary({ stats, currency }: TransactionStatsSummaryProps) {
   const formatDate = (dateStr: string): string => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return formatLocalDate(dateStr, { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const netColor = stats.netAmount >= 0 ? 'text-teal-600' : 'text-red-600';

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
 import { useBudget } from '@/lib/contexts/BudgetContext';
+import { getLocalDateString } from '@/lib/utils/dateUtils';
 import type { RecurringFrequency, RecurringTransaction } from '@/types';
 
 interface RecurringTransactionModalProps {
@@ -22,11 +23,6 @@ const frequencyOptions: Array<{ value: RecurringFrequency; label: string }> = [
   { value: 'quarterly', label: 'Quarterly' },
   { value: 'yearly', label: 'Yearly' },
 ];
-
-function todayString() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-}
 
 export function RecurringTransactionModal({ isOpen, onClose, recurring }: RecurringTransactionModalProps) {
   const {
@@ -46,8 +42,8 @@ export function RecurringTransactionModal({ isOpen, onClose, recurring }: Recurr
   const [needsOrWants, setNeedsOrWants] = useState<'needs' | 'wants'>('needs');
   const [userId, setUserId] = useState('');
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
-  const [startDate, setStartDate] = useState(todayString());
-  const [nextDueDate, setNextDueDate] = useState(todayString());
+  const [startDate, setStartDate] = useState(getLocalDateString());
+  const [nextDueDate, setNextDueDate] = useState(getLocalDateString());
   const [endDate, setEndDate] = useState('');
   const [notes, setNotes] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -77,7 +73,7 @@ export function RecurringTransactionModal({ isOpen, onClose, recurring }: Recurr
       return;
     }
 
-    const today = todayString();
+    const today = getLocalDateString();
     setType('expense');
     setName('');
     setAmount('');

@@ -2,6 +2,7 @@
 
 import { BarChart, Bar, Line, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import type { MonthlyComparisonData } from '@/types';
+import { formatLocalMonth } from '@/lib/utils/dateUtils';
 
 interface MonthlyComparisonChartProps {
   data: MonthlyComparisonData[];
@@ -18,8 +19,7 @@ export function MonthlyComparisonChart({ data }: MonthlyComparisonChartProps) {
 
   // Format month for display
   const formatMonth = (monthStr: string): string => {
-    const date = new Date(`${monthStr}-01`);
-    return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    return formatLocalMonth(monthStr, { month: 'short', year: '2-digit' });
   };
 
   // Prepare data for display

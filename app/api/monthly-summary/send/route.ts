@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 
 type AccessRow = {
   household_id: string | null;
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest) {
   const requestedMonth = typeof body?.month === 'string' ? body.month : '';
   const month = /^\d{4}-\d{2}$/.test(requestedMonth)
     ? requestedMonth
-    : new Date().toISOString().slice(0, 7);
+    : getCurrentLocalMonth();
 
   const { data: accessRows, error: accessError } = await (supabase as any).rpc('get_my_household_access_status');
   if (accessError) {

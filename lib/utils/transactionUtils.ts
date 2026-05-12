@@ -138,7 +138,7 @@ export function sortTransactions(
 
     switch (sort.field) {
       case 'date':
-        comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+        comparison = a.date.localeCompare(b.date);
         break;
       case 'amount':
         comparison = a.amount - b.amount;

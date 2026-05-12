@@ -8,6 +8,7 @@ import { AddIncomeModal } from '@/components/income/AddIncomeModal';
 import { EditIncomeModal } from '@/components/income/EditIncomeModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
+import { compareDateStrings, formatLocalDate } from '@/lib/utils/dateUtils';
 import type { Income } from '@/types';
 import { FiPlus, FiTrendingUp } from 'react-icons/fi';
 
@@ -82,7 +83,7 @@ export default function IncomePage() {
             ) : (
               <div className="space-y-3">
                 {monthIncomes
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .sort((a, b) => compareDateStrings(b.date, a.date))
                   .map((income) => (
                     <div
                       key={income.id}
@@ -91,7 +92,7 @@ export default function IncomePage() {
                       <div className="min-w-0">
                         <div className="font-medium text-slate-900">{income.sourceName}</div>
                         <div className="mt-1 text-sm text-slate-500">
-                          {new Date(income.date).toLocaleDateString()} • {income.userName}
+                          {formatLocalDate(income.date)} • {income.userName}
                         </div>
                       </div>
                       <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between sm:justify-end">

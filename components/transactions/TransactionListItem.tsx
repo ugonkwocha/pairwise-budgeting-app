@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import type { UnifiedTransaction } from '@/types';
 import { Badge } from '@/components/ui/Badge';
+import { formatLocalDate } from '@/lib/utils/dateUtils';
 
 interface TransactionListItemProps {
   transaction: UnifiedTransaction;
@@ -49,7 +50,7 @@ export function TransactionListItem({ transaction, currency }: TransactionListIt
       <div className="mb-2 min-w-0">
         <div className="break-words font-semibold text-slate-950">{transaction.categoryOrSource}</div>
         <div className="text-sm text-slate-500">
-          {transaction.userName} · {new Date(transaction.date).toLocaleDateString()}
+          {transaction.userName} · {formatLocalDate(transaction.date)}
         </div>
       </div>
 

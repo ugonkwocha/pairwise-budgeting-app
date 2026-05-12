@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { TransactionFilters, Category, IncomeSource, User } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { formatLocalMonth } from '@/lib/utils/dateUtils';
 
 interface TransactionFiltersProps {
   filters: TransactionFilters;
@@ -30,8 +31,7 @@ export function TransactionFilters({
     : [];
 
   const formatMonth = (monthStr: string): string => {
-    const date = new Date(`${monthStr}-01`);
-    return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    return formatLocalMonth(monthStr, { month: 'short', year: '2-digit' });
   };
 
   const handleTypeChange = (type: 'all' | 'income' | 'expense') => {

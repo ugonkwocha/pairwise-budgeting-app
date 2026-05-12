@@ -11,6 +11,7 @@ import {
   calculateSpendingByUser,
 } from '@/lib/calculations/analyticsCalculations';
 import { getMonthsInRange } from './dateRangeUtils';
+import { getLocalDateString } from './dateUtils';
 
 /**
  * Generate a CSV string from headers and data rows
@@ -113,7 +114,7 @@ export function exportTransactionsCSV(
   });
 
   // Sort by date
-  rows.sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime());
+  rows.sort((a, b) => b[0].localeCompare(a[0]));
 
   // Generate and download
   const csv = generateCSV(headers, rows);
@@ -293,6 +294,6 @@ export function exportQuickSummaryCSV(
   }
 
   const csv = generateCSV(headers, rows);
-  const filename = `budget-summary-${new Date().toISOString().split('T')[0]}.csv`;
+  const filename = `budget-summary-${getLocalDateString()}.csv`;
   downloadCSV(csv, filename);
 }

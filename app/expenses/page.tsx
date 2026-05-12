@@ -9,6 +9,7 @@ import { AddExpenseModal } from '@/components/expenses/AddExpenseModal';
 import { EditExpenseModal } from '@/components/expenses/EditExpenseModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
+import { compareDateStrings, formatLocalDate } from '@/lib/utils/dateUtils';
 import type { Expense } from '@/types';
 import { FiCreditCard, FiPlus } from 'react-icons/fi';
 
@@ -83,7 +84,7 @@ export default function ExpensesPage() {
             ) : (
               <div className="space-y-3">
                 {monthExpenses
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                  .sort((a, b) => compareDateStrings(b.date, a.date))
                   .map((expense) => (
                     <div
                       key={expense.id}
@@ -92,7 +93,7 @@ export default function ExpensesPage() {
                       <div className="min-w-0">
                         <div className="font-medium text-slate-900">{expense.categoryName}</div>
                         <div className="mt-1 text-sm text-slate-500">
-                          {new Date(expense.date).toLocaleDateString()} • {expense.userName}
+                          {formatLocalDate(expense.date)} • {expense.userName}
                         </div>
                       </div>
                       <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between sm:justify-end">

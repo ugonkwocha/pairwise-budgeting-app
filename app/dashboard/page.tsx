@@ -18,6 +18,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { parseLocalDate } from '@/lib/utils/dateUtils';
 
 function getLastMonths(currentMonth: string, count: number) {
   const [year, month] = currentMonth.split('-').map(Number);
@@ -385,7 +386,7 @@ export default function DashboardPage() {
                 {upcomingBills.map((bill) => {
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
-                  const due = new Date(`${bill.nextDueDate}T00:00:00`);
+                  const due = parseLocalDate(bill.nextDueDate);
                   const dueIn = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
                   return (
                     <div key={bill.id} className="flex items-start gap-3 rounded-lg bg-slate-50 px-4 py-3">

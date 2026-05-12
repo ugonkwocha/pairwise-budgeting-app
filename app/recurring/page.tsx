@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useBudget } from '@/lib/contexts/BudgetContext';
 import { RecurringTransactionModal } from '@/components/recurring/RecurringTransactionModal';
+import { formatLocalDate, parseLocalDate } from '@/lib/utils/dateUtils';
 import type { RecurringTransaction } from '@/types';
 
 function formatDate(value: string) {
-  return new Date(`${value}T00:00:00`).toLocaleDateString('en-US', {
+  return formatLocalDate(value, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -19,7 +20,7 @@ function formatDate(value: string) {
 function daysUntil(value: string) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const due = new Date(`${value}T00:00:00`);
+  const due = parseLocalDate(value);
   return Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
 }
 

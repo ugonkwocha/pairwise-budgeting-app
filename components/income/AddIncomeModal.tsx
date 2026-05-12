@@ -6,19 +6,12 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { getLocalDateString } from '@/lib/utils/dateUtils';
 
 interface AddIncomeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const getLocalDateString = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 export function AddIncomeModal({ isOpen, onClose }: AddIncomeModalProps) {
   const { addIncome, incomeSources, users, currentMonth } = useBudget();
@@ -32,7 +25,6 @@ export function AddIncomeModal({ isOpen, onClose }: AddIncomeModalProps) {
   // Update date when modal opens to ensure it's in the current viewed month
   useEffect(() => {
     if (isOpen) {
-      const now = new Date();
       const localDateStr = getLocalDateString();
 
       // If current date is in the viewed month, use it; otherwise use first day of viewed month

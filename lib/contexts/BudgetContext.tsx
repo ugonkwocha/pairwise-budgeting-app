@@ -24,6 +24,7 @@ import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
 import { checkAndCreateAlerts } from '@/lib/calculations/alertCalculations';
 import { calculateCarryOvers, getPreviousMonth } from '@/lib/utils/monthUtils';
+import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 import * as budgetRepository from '@/lib/supabase/budgetRepository';
 import { INITIAL_STORAGE } from '@/lib/storage/schema';
 import { AppLoadingScreen } from '@/components/system/AppLoadingScreen';
@@ -550,7 +551,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     incomeSources: IncomeSource[],
     categories: Category[]
   ) => {
-    const month = data?.currentMonth || new Date().toISOString().slice(0, 7);
+    const month = data?.currentMonth || getCurrentLocalMonth();
     budgetRepository.createHouseholdSetup(household, users, incomeSources, categories, month)
       .then((createdData) => {
         window.localStorage.removeItem(START_NEW_HOUSEHOLD_KEY);
@@ -588,7 +589,7 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     setIsStartingNewHousehold(true);
     setData({
       ...INITIAL_STORAGE,
-      currentMonth: new Date().toISOString().slice(0, 7),
+      currentMonth: getCurrentLocalMonth(),
       lastMonthCheck: new Date().toISOString(),
     });
     setAccessStatus('needs_onboarding');

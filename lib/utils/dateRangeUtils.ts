@@ -5,6 +5,7 @@
 
 export { getCurrentMonth } from './monthUtils';
 import { getCurrentMonth, getPreviousMonth, getNextMonth } from './monthUtils';
+import { formatLocalMonth } from './dateUtils';
 
 /**
  * Get all months within a date range (inclusive)
@@ -98,9 +99,8 @@ export function normalizeDateRange(
  */
 export function formatMonthRange(start: string, end: string): string {
   const formatMonth = (month: string): string => {
-    const [year, monthNum] = month.split('-');
-    const date = new Date(`${month}-01`);
-    const monthName = date.toLocaleDateString('en-US', { month: 'long' });
+    const [year] = month.split('-');
+    const monthName = formatLocalMonth(month, { month: 'long' });
     return `${monthName} ${year}`;
   };
 

@@ -1,3 +1,6 @@
+import type { MonthlyCategory, Expense, Category } from '@/types';
+import { formatLocalMonth, getCurrentLocalMonth } from './dateUtils';
+
 export function getPreviousMonth(month: string): string {
   const [year, monthStr] = month.split('-');
   let yearNum = parseInt(year);
@@ -27,12 +30,11 @@ export function getNextMonth(month: string): string {
 }
 
 export function formatMonthDisplay(month: string): string {
-  const date = new Date(month + '-01');
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return formatLocalMonth(month, { month: 'long', year: 'numeric' });
 }
 
 export function getCurrentMonth(): string {
-  return new Date().toISOString().slice(0, 7);
+  return getCurrentLocalMonth();
 }
 
 export function isCurrentMonth(month: string): boolean {
@@ -42,8 +44,6 @@ export function isCurrentMonth(month: string): boolean {
 export function isFutureMonth(month: string): boolean {
   return month > getCurrentMonth();
 }
-
-import type { MonthlyCategory, Expense, Category } from '@/types';
 
 export function calculateCarryOvers(
   previousMonth: string,
