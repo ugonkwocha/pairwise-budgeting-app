@@ -14,6 +14,7 @@ import { AddIncomeSourceModal } from '@/components/settings/AddIncomeSourceModal
 import { EditIncomeSourceModal } from '@/components/settings/EditIncomeSourceModal';
 import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
 import type { User, IncomeSource, Category, HouseholdInvite } from '@/types';
+import { FiMail } from 'react-icons/fi';
 
 function getInviteStatus(invite?: HouseholdInvite): 'none' | 'pending' | 'accepted' | 'expired' {
   if (!invite) return 'none';
@@ -35,6 +36,7 @@ export default function SettingsPage() {
     incomeSources,
     incomes,
     expenses,
+    currentMonth,
     deleteUser,
     deleteInvite,
     deleteIncomeSource,
@@ -59,6 +61,9 @@ export default function SettingsPage() {
   const [selectedInvite, setSelectedInvite] = useState<HouseholdInvite | null>(null);
   const [selectedSource, setSelectedSource] = useState<IncomeSource | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [isSendingSummary, setIsSendingSummary] = useState(false);
+  const [summaryStatus, setSummaryStatus] = useState<string | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
   const isPrimaryMember = currentUser?.role === 'primary';
 
   const handleEditUser = (user: User) => {
@@ -134,6 +139,32 @@ export default function SettingsPage() {
     setIsDeleteInviteOpen(true);
   };
 
+  const handleSendMonthlySummary = async () => {
+    if (!isPrimaryMember) return;
+    setIsSendingSummary(true);
+    setSummaryStatus(null);
+    setSummaryError(null);
+
+    try {
+      const response = await fetch('/api/monthly-summary/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: currentMonth }),
+      });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.error || 'Unable to send monthly summary');
+      }
+
+      setSummaryStatus(`Monthly summary sent to ${result?.recipients || 0} active member${result?.recipients === 1 ? '' : 's'}.`);
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : 'Unable to send monthly summary');
+    } finally {
+      setIsSendingSummary(false);
+    }
+  };
+
   if (!household) {
     return <div>Loading...</div>;
   }
@@ -172,6 +203,46 @@ export default function SettingsPage() {
                 <div className="mt-2 text-lg font-semibold text-slate-950">{household.currency}</div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 bg-white">
+          <CardHeader className="border-b border-slate-100 pb-4">
+            <CardTitle className="text-sm uppercase tracking-wide">Email Summaries</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
+                <FiMail className="h-4 w-4" aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-950">Monthly budget summary</p>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Send income, spending, over-budget categories, and upcoming bills to active household members.
+                </p>
+              </div>
+            </div>
+            {summaryStatus && (
+              <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                {summaryStatus}
+              </div>
+            )}
+            {summaryError && (
+              <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {summaryError}
+              </div>
+            )}
+            <Button
+              type="button"
+              className="mt-5 w-full"
+              onClick={handleSendMonthlySummary}
+              disabled={!isPrimaryMember || isSendingSummary}
+            >
+              {isSendingSummary ? 'Sending...' : 'Send Monthly Summary'}
+            </Button>
+            {!isPrimaryMember && (
+              <p className="mt-3 text-xs font-medium text-slate-500">Only primary members can send household summary emails.</p>
+            )}
           </CardContent>
         </Card>
 
