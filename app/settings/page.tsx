@@ -171,7 +171,7 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[1600px]">
         <div className="mb-7">
           <div className="mb-6 text-xs font-medium text-slate-400">
             Dashboard <span className="mx-2">›</span> Settings
@@ -182,8 +182,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[360px_1fr]">
-        <Card className="border-slate-200 bg-white">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-12">
+        <Card className="border-slate-200 bg-white xl:col-span-4">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Household Information</CardTitle>
             {isPrimaryMember && (
@@ -206,7 +206,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 bg-white">
+        <Card className="border-slate-200 bg-white xl:col-span-8">
           <CardHeader className="border-b border-slate-100 pb-4">
             <CardTitle className="text-sm uppercase tracking-wide">Email Summaries</CardTitle>
           </CardHeader>
@@ -246,8 +246,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-        <Card className="border-slate-200 bg-white">
+        <Card className="border-slate-200 bg-white xl:col-span-6">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Members</CardTitle>
             {isPrimaryMember && (
@@ -359,7 +358,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 bg-white">
+        <Card className="border-slate-200 bg-white xl:col-span-6">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Income Sources</CardTitle>
             {isPrimaryMember && (
@@ -422,7 +421,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-slate-200 bg-white">
+        <Card className="border-slate-200 bg-white lg:col-span-2 xl:col-span-12">
           <CardHeader className="flex flex-col gap-3 border-b border-slate-100 pb-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
             <CardTitle className="text-sm uppercase tracking-wide">Expense Categories</CardTitle>
             {isPrimaryMember && (
@@ -435,7 +434,7 @@ export default function SettingsPage() {
             {categories.length === 0 ? (
               <p className="py-8 text-center text-sm text-slate-500">No categories yet. Add one to start tracking expenses.</p>
             ) : (
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {categories.map((category) => (
                   <div key={category.id} className="rounded-lg bg-slate-50 p-4">
                     <div className="flex flex-col gap-4">
@@ -479,7 +478,6 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
-        </div>
         </div>
       </div>
 
