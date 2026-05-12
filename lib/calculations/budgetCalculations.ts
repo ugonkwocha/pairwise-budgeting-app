@@ -65,7 +65,7 @@ export function calculateCategorySpending(
       const percentage = budget > 0 ? (spent / budget) * 100 : 0;
 
       let status: 'healthy' | 'warning' | 'danger' = 'healthy';
-      if (percentage >= 100) {
+      if (spent > budget) {
         status = 'danger';
       } else if (percentage >= 80) {
         status = 'warning';

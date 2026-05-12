@@ -128,6 +128,47 @@ describe('budget calculations', () => {
     ]);
   });
 
+  it('does not mark a category as danger when spending equals the budget', () => {
+    const exactBudgetCategory: MonthlyCategory[] = [
+      {
+        id: 'month-rent',
+        categoryId: 'rent',
+        categoryName: 'Rent/Mortgage',
+        monthlyBudget: 2850,
+        currentSpent: 0,
+        carryOverAmount: 0,
+        month: '2026-05',
+        createdAt: '2026-05-01T00:00:00Z',
+      },
+    ];
+    const exactBudgetExpense: Expense[] = [
+      {
+        id: 'expense-rent',
+        amount: 2850,
+        categoryId: 'rent',
+        categoryName: 'Rent/Mortgage',
+        needsOrWants: 'needs',
+        userId: 'member-1',
+        userName: 'Ugo',
+        date: '2026-05-05',
+        createdAt: '2026-05-05T00:00:00Z',
+        createdBy: 'auth-1',
+      },
+    ];
+
+    expect(calculateCategorySpending(exactBudgetCategory, exactBudgetExpense, '2026-05')).toEqual([
+      {
+        categoryId: 'rent',
+        categoryName: 'Rent/Mortgage',
+        budget: 2850,
+        spent: 2850,
+        remaining: 0,
+        percentage: 100,
+        status: 'warning',
+      },
+    ]);
+  });
+
   it('groups income by source for the selected month', () => {
     expect(calculateIncomeBreakdown(incomes, '2026-05')).toEqual([
       {

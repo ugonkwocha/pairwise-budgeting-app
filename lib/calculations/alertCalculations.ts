@@ -4,6 +4,34 @@ function generateId(): string {
   return `${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
+function isCategoryExceeded(category: CategorySpending): boolean {
+  return category.spent > category.budget;
+}
+
+function isCategoryWarning(category: CategorySpending): boolean {
+  return category.budget > 0 && category.spent < category.budget && category.percentage >= 80;
+}
+
+export function getCurrentAlertMessage(
+  alert: Alert,
+  categorySpending: CategorySpending[]
+): string {
+  if (alert.type !== 'category_warning' && alert.type !== 'category_exceeded') {
+    return alert.message;
+  }
+
+  const category = categorySpending.find((item) => item.categoryId === alert.categoryId);
+  if (!category) {
+    return alert.message;
+  }
+
+  if (alert.type === 'category_exceeded') {
+    return `You've exceeded your budget for ${category.categoryName}. Spent $${category.spent.toFixed(2)} of $${category.budget.toFixed(2)}.`;
+  }
+
+  return `You're approaching your budget limit for ${category.categoryName}. $${category.remaining.toFixed(2)} remaining.`;
+}
+
 export function checkAndCreateAlerts(
   categorySpending: CategorySpending[],
   budgetSummary: BudgetSummary,
@@ -11,7 +39,7 @@ export function checkAndCreateAlerts(
 ): Alert[] {
   const newAlerts: Alert[] = [];
 
-  // Category alerts (80% warning, 100% exceeded)
+  // Category alerts (80% warning, over 100% exceeded)
   categorySpending.forEach((cat) => {
     // Check if alert already exists
     const warningExists = existingAlerts.some(
@@ -22,7 +50,7 @@ export function checkAndCreateAlerts(
       (a) => a.categoryId === cat.categoryId && a.type === 'category_exceeded' && !a.dismissed
     );
 
-    if (cat.percentage >= 100) {
+    if (isCategoryExceeded(cat)) {
       if (!exceededExists) {
         newAlerts.push({
           id: generateId(),
@@ -34,7 +62,7 @@ export function checkAndCreateAlerts(
           createdAt: new Date().toISOString(),
         });
       }
-    } else if (cat.percentage >= 80 && !warningExists && !exceededExists) {
+    } else if (isCategoryWarning(cat) && !warningExists && !exceededExists) {
       newAlerts.push({
         id: generateId(),
         type: 'category_warning',
@@ -86,10 +114,10 @@ export function isAlertRelevant(
     if (!category) return false;
 
     if (alert.type === 'category_exceeded') {
-      return category.percentage >= 100;
+      return isCategoryExceeded(category);
     }
 
-    return category.percentage >= 80 && category.percentage < 100;
+    return isCategoryWarning(category);
   }
 
   return true;

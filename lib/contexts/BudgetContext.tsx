@@ -22,7 +22,7 @@ import {
 } from '@/types';
 import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
-import { checkAndCreateAlerts, isAlertRelevant } from '@/lib/calculations/alertCalculations';
+import { checkAndCreateAlerts, getCurrentAlertMessage, isAlertRelevant } from '@/lib/calculations/alertCalculations';
 import { calculateCarryOvers, getPreviousMonth } from '@/lib/utils/monthUtils';
 import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 import * as budgetRepository from '@/lib/supabase/budgetRepository';
@@ -223,7 +223,12 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   }, [data?.incomes, data?.currentMonth]);
 
   const activeAlerts = useMemo(() => {
-    return data?.alerts.filter((alert) => isAlertRelevant(alert, categorySpending, budgetSummary)) || [];
+    return data?.alerts
+      .filter((alert) => isAlertRelevant(alert, categorySpending, budgetSummary))
+      .map((alert) => ({
+        ...alert,
+        message: getCurrentAlertMessage(alert, categorySpending),
+      })) || [];
   }, [data?.alerts, categorySpending, budgetSummary]);
 
   useEffect(() => {
