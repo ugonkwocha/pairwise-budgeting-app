@@ -29,7 +29,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        'rounded-lg font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex items-center justify-center whitespace-nowrap rounded-lg font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 [&>svg]:shrink-0',
         variantClasses[variant],
         sizeClasses[size],
         className

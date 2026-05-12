@@ -72,8 +72,8 @@ export default function SavingsPage() {
               <h1 className="text-2xl font-semibold text-slate-950">Savings</h1>
               <p className="mt-3 text-sm text-slate-500">Set goals, record contributions, and track household savings progress.</p>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Button type="button" variant="secondary" onClick={openAddGoal} className="inline-flex items-center justify-center gap-2">
+            <div className="grid w-full grid-cols-1 gap-3 sm:w-auto sm:grid-cols-2">
+              <Button type="button" variant="secondary" onClick={openAddGoal}>
                 <FiTarget aria-hidden="true" />
                 Add Goal
               </Button>
@@ -81,7 +81,6 @@ export default function SavingsPage() {
                 type="button"
                 onClick={() => openContribution()}
                 disabled={savingsGoals.length === 0}
-                className="inline-flex items-center justify-center gap-2"
               >
                 <FiPlus aria-hidden="true" />
                 Add Contribution
@@ -159,13 +158,13 @@ export default function SavingsPage() {
                             {currency}{goal.currentAmount.toFixed(2)} saved of {currency}{goal.targetAmount.toFixed(2)} target
                           </p>
                         </div>
-                        <div className="flex flex-wrap gap-2 md:justify-end">
+                        <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3 md:flex md:flex-wrap md:justify-end">
                           <Button type="button" size="sm" onClick={() => openContribution(goal)}>
-                            <FiPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+                            <FiPlus className="h-4 w-4" aria-hidden="true" />
                             Contribute
                           </Button>
                           <Button type="button" size="sm" variant="secondary" onClick={() => openEditGoal(goal)}>
-                            <FiEdit2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                            <FiEdit2 className="h-4 w-4" aria-hidden="true" />
                             Edit
                           </Button>
                           <Button
@@ -178,7 +177,7 @@ export default function SavingsPage() {
                             }}
                             className="text-red-600 hover:text-red-700"
                           >
-                            <FiTrash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                            <FiTrash2 className="h-4 w-4" aria-hidden="true" />
                             Delete
                           </Button>
                         </div>

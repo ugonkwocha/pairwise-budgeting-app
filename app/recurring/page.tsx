@@ -104,16 +104,16 @@ export default function RecurringPage() {
         <div className="flex flex-wrap gap-2 md:justify-end">
           {item.isActive && (
             <Button type="button" size="sm" onClick={() => postRecurringTransaction(item.id)}>
-              <FiCheckCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+              <FiCheckCircle className="h-4 w-4" aria-hidden="true" />
               Post
             </Button>
           )}
           <Button type="button" size="sm" variant="secondary" onClick={() => openEditModal(item)}>
-            <FiEdit2 className="mr-2 h-4 w-4" aria-hidden="true" />
+            <FiEdit2 className="h-4 w-4" aria-hidden="true" />
             Edit
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={() => deleteRecurringTransaction(item.id)}>
-            <FiTrash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+            <FiTrash2 className="h-4 w-4" aria-hidden="true" />
             Delete
           </Button>
         </div>
@@ -129,12 +129,12 @@ export default function RecurringPage() {
             Dashboard <span className="mx-2">›</span> Recurring
           </div>
           <div className="flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div className="min-w-0">
               <h1 className="text-2xl font-semibold text-slate-950">Recurring</h1>
               <p className="mt-3 text-sm text-slate-500">Track salary, rent, subscriptions, bills, and other repeating items.</p>
             </div>
-            <Button type="button" onClick={openAddModal} className="w-full sm:w-auto">
-              <FiPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+            <Button type="button" onClick={openAddModal} className="w-full shrink-0 sm:w-auto">
+              <FiPlus className="h-4 w-4" aria-hidden="true" />
               Add Recurring
             </Button>
           </div>
