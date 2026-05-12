@@ -65,3 +65,32 @@ export function checkAndCreateAlerts(
 
   return newAlerts;
 }
+
+export function isAlertRelevant(
+  alert: Alert,
+  categorySpending: CategorySpending[],
+  budgetSummary: BudgetSummary
+): boolean {
+  if (alert.dismissed) {
+    return false;
+  }
+
+  if (alert.type === 'total_exceeded') {
+    return budgetSummary.totalSpent > budgetSummary.totalBudgeted;
+  }
+
+  if (alert.type === 'category_warning' || alert.type === 'category_exceeded') {
+    if (!alert.categoryId) return false;
+
+    const category = categorySpending.find((item) => item.categoryId === alert.categoryId);
+    if (!category) return false;
+
+    if (alert.type === 'category_exceeded') {
+      return category.percentage >= 100;
+    }
+
+    return category.percentage >= 80 && category.percentage < 100;
+  }
+
+  return true;
+}

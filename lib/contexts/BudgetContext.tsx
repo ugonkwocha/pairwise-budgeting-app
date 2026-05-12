@@ -22,7 +22,7 @@ import {
 } from '@/types';
 import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
-import { checkAndCreateAlerts } from '@/lib/calculations/alertCalculations';
+import { checkAndCreateAlerts, isAlertRelevant } from '@/lib/calculations/alertCalculations';
 import { calculateCarryOvers, getPreviousMonth } from '@/lib/utils/monthUtils';
 import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 import * as budgetRepository from '@/lib/supabase/budgetRepository';
@@ -223,13 +223,36 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
   }, [data?.incomes, data?.currentMonth]);
 
   const activeAlerts = useMemo(() => {
-    return data?.alerts.filter((a) => !a.dismissed) || [];
-  }, [data?.alerts]);
+    return data?.alerts.filter((alert) => isAlertRelevant(alert, categorySpending, budgetSummary)) || [];
+  }, [data?.alerts, categorySpending, budgetSummary]);
 
   useEffect(() => {
     if (!data?.onboardingCompleted || !data.household) return;
 
-    const newAlerts = checkAndCreateAlerts(categorySpending, budgetSummary, data.alerts);
+    const staleAlerts = data.alerts.filter((alert) =>
+      !alert.dismissed && !isAlertRelevant(alert, categorySpending, budgetSummary)
+    );
+
+    staleAlerts.forEach((alert) => {
+      budgetRepository
+        .dismissAlertRow(alert.id)
+        .catch((err) => handleRepositoryError(err, 'Unable to clear stale alert'));
+    });
+
+    if (staleAlerts.length > 0) {
+      const staleAlertIds = new Set(staleAlerts.map((alert) => alert.id));
+      setData((prev) => (prev ? {
+        ...prev,
+        alerts: prev.alerts.map((alert) =>
+          staleAlertIds.has(alert.id) ? { ...alert, dismissed: true } : alert
+        ),
+      } : prev));
+    }
+
+    const relevantExistingAlerts = data.alerts.filter((alert) =>
+      alert.dismissed || isAlertRelevant(alert, categorySpending, budgetSummary)
+    );
+    const newAlerts = checkAndCreateAlerts(categorySpending, budgetSummary, relevantExistingAlerts);
     newAlerts.forEach((alert) => {
       budgetRepository
         .insertAlert(
