@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBudget } from '@/lib/contexts/BudgetContext';
-import { Household, User, IncomeSource, Category, Currency } from '@/types';
+import { Household, User, IncomeSource, Category } from '@/types';
 import { Button } from '@/components/ui/Button';
+import { createClient } from '@/lib/supabase/client';
 import StepIndicator from './StepIndicator';
 import HouseholdStep from './HouseholdStep';
 import MembersStep from './MembersStep';
@@ -17,6 +18,8 @@ export default function OnboardingWizard() {
   const { completeOnboarding, onboardingCompleted, isAuthenticated, error } = useBudget();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
+  const [setupError, setSetupError] = useState<string | null>(null);
+  const [primaryMember, setPrimaryMember] = useState({ name: 'Primary member', email: '' });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -28,6 +31,26 @@ export default function OnboardingWizard() {
       router.push('/dashboard');
     }
   }, [isAuthenticated, onboardingCompleted, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadPrimaryMember = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      setPrimaryMember({
+        name: user.user_metadata?.name || user.email?.split('@')[0] || 'Primary member',
+        email: user.email || '',
+      });
+    };
+
+    void loadPrimaryMember();
+  }, [isAuthenticated]);
 
   // Step data
   const [household, setHousehold] = useState<Omit<Household, 'id' | 'createdAt' | 'updatedAt'> | null>(null);
@@ -46,13 +69,62 @@ export default function OnboardingWizard() {
 
   const StepComponent = steps[currentStep].component;
 
+  const getValidAdditionalMembers = () => members
+    .map((member) => ({
+      ...member,
+      name: member.name.trim(),
+      email: member.email.trim().toLowerCase(),
+      role: 'member' as const,
+    }))
+    .filter((member) => member.name.length > 0 || member.email.length > 0);
+
+  const validateMembers = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const filledMembers = getValidAdditionalMembers();
+    const incompleteMember = filledMembers.find((member) => !member.name || !member.email);
+    if (incompleteMember) {
+      return 'Optional members need both a name and email. Remove blank rows or complete the member details.';
+    }
+
+    const invalidEmail = filledMembers.find((member) => !emailRegex.test(member.email));
+    if (invalidEmail) {
+      return 'Enter a valid email address for each optional member.';
+    }
+
+    return null;
+  };
+
+  const validateCurrentStep = () => {
+    if (currentStep === 0 && !household?.name?.trim()) {
+      return 'Enter a household name to continue.';
+    }
+
+    if (currentStep === 1) {
+      return validateMembers();
+    }
+
+    if (currentStep === 4 && categories.length === 0) {
+      return 'Add at least one expense category to continue.';
+    }
+
+    return null;
+  };
+
   const handleNext = () => {
+    const validationError = validateCurrentStep();
+    if (validationError) {
+      setSetupError(validationError);
+      return;
+    }
+
+    setSetupError(null);
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     }
   };
 
   const handleBack = () => {
+    setSetupError(null);
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
@@ -60,25 +132,25 @@ export default function OnboardingWizard() {
 
   const handleComplete = () => {
     try {
+      setSetupError(null);
       if (!household) {
-        alert('Please enter a household name to continue');
+        setSetupError('Enter a household name to continue.');
         return;
       }
 
-      if (members.length === 0) {
-        alert('Please add at least one member to continue');
+      if (!primaryMember.email) {
+        setSetupError('Your account details are still loading. Please wait a moment and try again.');
         return;
       }
 
       if (categories.length === 0) {
-        alert('Please add at least one category to continue');
+        setSetupError('Add at least one expense category to continue.');
         return;
       }
 
-      // Validate that at least one member has a name
-      const hasValidMember = members.some(m => m.name.trim().length > 0);
-      if (!hasValidMember) {
-        alert('Please fill in at least one member name to continue');
+      const memberValidationError = validateMembers();
+      if (memberValidationError) {
+        setSetupError(memberValidationError);
         return;
       }
 
@@ -90,17 +162,23 @@ export default function OnboardingWizard() {
         updatedAt: new Date().toISOString(),
       };
 
-      // Add household ID to members (filter out empty names)
-      const membersWithHousehold: User[] = members
-        .filter(m => m.name.trim().length > 0)
+      const primaryUser: User = {
+        id: `user_${Date.now()}_primary`,
+        name: primaryMember.name.trim() || primaryMember.email.split('@')[0] || 'Primary member',
+        email: primaryMember.email.trim().toLowerCase(),
+        role: 'primary',
+        createdAt: new Date().toISOString(),
+        householdId: householdWithId.id,
+      };
+
+      const additionalMembers: User[] = getValidAdditionalMembers()
         .map((m) => ({
           ...m,
-          name: m.name.trim(),
-          email: m.email.trim(),
           id: `user_${Date.now()}_${Math.random().toString(36).slice(2)}`,
           createdAt: new Date().toISOString(),
           householdId: householdWithId.id,
         }));
+      const membersWithHousehold: User[] = [primaryUser, ...additionalMembers];
 
       // Create income sources with IDs
       const sourcesWithId: IncomeSource[] = incomeSources.map((s) => {
@@ -121,7 +199,7 @@ export default function OnboardingWizard() {
       completeOnboarding(householdWithId, membersWithHousehold, sourcesWithId, categoriesWithId);
     } catch (error) {
       console.error('Error in handleComplete:', error);
-      alert('An error occurred while completing setup. Check the console for details.');
+      setSetupError('An error occurred while completing setup. Please try again.');
     }
   };
 
@@ -131,15 +209,15 @@ export default function OnboardingWizard() {
         {/* Header */}
         <div className="mb-6 text-center sm:mb-8">
           <h1 className="mb-2 text-3xl font-bold text-gray-900 sm:text-4xl">Welcome to Pairwise</h1>
-          <p className="text-base text-gray-600 sm:text-lg">Let&apos;s set up your household budget in 6 steps</p>
+          <p className="text-base text-gray-600 sm:text-lg">Let&apos;s set up your household budget in 6 quick steps</p>
         </div>
 
         {/* Step Indicator */}
         <StepIndicator currentStep={currentStep + 1} totalSteps={steps.length} />
 
-        {error && (
+        {(error || setupError) && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-            {error}
+            {setupError || error}
           </div>
         )}
 
@@ -154,6 +232,7 @@ export default function OnboardingWizard() {
               incomeSources,
               categories,
             }}
+            primaryMember={primaryMember}
             onUpdate={{
               setHousehold,
               setMembers,
