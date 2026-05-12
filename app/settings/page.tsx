@@ -439,26 +439,24 @@ export default function SettingsPage() {
                 {categories.map((category) => (
                   <div key={category.id} className="rounded-lg bg-slate-50 p-4">
                     <div className="flex flex-col gap-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                      <div className="min-w-0">
+                          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                             <span
                               className="h-3 w-3 shrink-0 rounded-full"
                               style={{ backgroundColor: category.color || '#2563eb' }}
                             />
-                            <div className="break-words font-medium text-slate-900">{category.name}</div>
+                            <div className="min-w-0 break-words font-medium text-slate-900">{category.name}</div>
+                            {category.carryOverEnabled && (
+                              <Badge variant="info" size="sm" className="shrink-0 px-2 py-0.5 text-[11px] leading-4">
+                                Carry over
+                              </Badge>
+                            )}
                           </div>
                           <div className="mt-2 text-sm text-slate-500">
                             {household.currency === 'NGN' ? '₦' : '$'}
                             {category.monthlyBudget.toFixed(2)} monthly budget
                           </div>
                         </div>
-                        {category.carryOverEnabled && (
-                          <Badge variant="info" size="sm">
-                            Carry over
-                          </Badge>
-                        )}
-                      </div>
                       {isPrimaryMember && (
                         <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
                           <Button variant="ghost" size="sm" onClick={() => handleEditCategory(category)}>
