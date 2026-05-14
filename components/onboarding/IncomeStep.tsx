@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { IncomeSource } from '@/types';
+import { FiCheck, FiEdit2, FiTrash2, FiX } from 'react-icons/fi';
 
 interface IncomeStepProps {
   data: {
@@ -25,6 +26,8 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
     data.incomeSources.length > 0 ? data.incomeSources : defaultSources
   );
   const [newSource, setNewSource] = useState('');
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [draftSource, setDraftSource] = useState({ name: '', description: '' });
 
   // Ensure default sources are saved to parent on mount
   React.useEffect(() => {
@@ -34,7 +37,7 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
   }, []);
 
   const handleAddSource = () => {
-    if (newSource.trim() && !sources.some((s) => s.name.toLowerCase() === newSource.toLowerCase())) {
+    if (newSource.trim() && !sources.some((s) => s.name.toLowerCase() === newSource.trim().toLowerCase())) {
       const updated = [...sources, { name: newSource.trim(), description: '' }];
       setSources(updated);
       onUpdate.setIncomeSources(updated);
@@ -42,10 +45,46 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
     }
   };
 
+  const startEditing = (index: number) => {
+    const source = sources[index];
+    setEditingIndex(index);
+    setDraftSource({
+      name: source.name,
+      description: source.description || '',
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingIndex(null);
+    setDraftSource({ name: '', description: '' });
+  };
+
+  const saveSource = () => {
+    if (editingIndex === null) return;
+
+    const name = draftSource.name.trim();
+    const description = draftSource.description.trim();
+    const duplicate = sources.some(
+      (source, index) => index !== editingIndex && source.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (!name || duplicate) return;
+
+    const updated = sources.map((source, index) =>
+      index === editingIndex ? { ...source, name, description } : source
+    );
+    setSources(updated);
+    onUpdate.setIncomeSources(updated);
+    cancelEditing();
+  };
+
   const handleRemoveSource = (index: number) => {
     const updated = sources.filter((_, i) => i !== index);
     setSources(updated);
     onUpdate.setIncomeSources(updated);
+    if (editingIndex === index) {
+      cancelEditing();
+    }
   };
 
   return (
@@ -56,32 +95,75 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
 
       <div className="space-y-2">
         {sources.map((source, index) => (
-          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div>
-              <div className="font-medium text-gray-900">{source.name}</div>
-              {source.description && (
-                <div className="text-sm text-gray-600">{source.description}</div>
-              )}
-            </div>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => handleRemoveSource(index)}
-            >
-              Remove
-            </Button>
+          <div key={`${source.name}-${index}`} className="rounded-lg bg-gray-50 p-3">
+            {editingIndex === index ? (
+              <div className="space-y-3">
+                <Input
+                  aria-label="Income source name"
+                  value={draftSource.name}
+                  onChange={(event) => setDraftSource((draft) => ({ ...draft, name: event.target.value }))}
+                  onKeyDown={(event) => event.key === 'Enter' && saveSource()}
+                />
+                <Input
+                  aria-label="Income source description"
+                  value={draftSource.description}
+                  onChange={(event) => setDraftSource((draft) => ({ ...draft, description: event.target.value }))}
+                  onKeyDown={(event) => event.key === 'Enter' && saveSource()}
+                  placeholder="Description"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Button size="sm" onClick={saveSource} className="gap-2">
+                    <FiCheck aria-hidden="true" />
+                    Save
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={cancelEditing} className="gap-2">
+                    <FiX aria-hidden="true" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="break-words font-medium text-gray-900">{source.name}</div>
+                  {source.description && (
+                    <div className="break-words text-sm text-gray-600">{source.description}</div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => startEditing(index)}
+                    className="gap-2"
+                  >
+                    <FiEdit2 aria-hidden="true" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleRemoveSource(index)}
+                    className="gap-2"
+                  >
+                    <FiTrash2 aria-hidden="true" />
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Input
           placeholder="Add new income source"
           value={newSource}
           onChange={(e) => setNewSource(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleAddSource()}
+          onKeyDown={(e) => e.key === 'Enter' && handleAddSource()}
         />
-        <Button onClick={handleAddSource} variant="secondary">
+        <Button onClick={handleAddSource} variant="secondary" className="sm:w-auto">
           Add
         </Button>
       </div>
