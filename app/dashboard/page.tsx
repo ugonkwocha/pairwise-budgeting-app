@@ -197,21 +197,23 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="mb-7 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-7 grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
           {metrics.map((metric) => (
-            <Card key={metric.label} className={`overflow-hidden border-0 ${metric.surface}`}>
-              <CardHeader className="mb-3 flex flex-row items-center justify-between">
-                <CardTitle className="text-xs font-semibold uppercase tracking-wide text-slate-500">{metric.label}</CardTitle>
-                <span className={`grid h-10 w-10 place-items-center rounded-lg bg-white ${metric.accent} shadow-sm`}>
+            <Card key={metric.label} className={`overflow-hidden border-0 p-3 sm:p-4 ${metric.surface}`}>
+              <CardHeader className="mb-4 flex flex-row items-start justify-between gap-2">
+                <CardTitle className="min-w-0 text-[11px] font-semibold uppercase leading-tight tracking-wide text-slate-500 sm:text-xs">
+                  {metric.label}
+                </CardTitle>
+                <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white ${metric.accent} shadow-sm sm:h-10 sm:w-10`}>
                   <metric.icon className="h-4 w-4" aria-hidden="true" />
                 </span>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-semibold tracking-tight text-slate-950">
+                <div className="whitespace-nowrap text-xl font-semibold leading-tight tracking-tight text-slate-950 sm:text-2xl">
                   {currencySymbol}
                   {metric.value.toFixed(2)}
                 </div>
-                <div className={`mt-3 text-xs font-semibold ${metric.accent}`}>{metric.delta}</div>
+                <div className={`mt-2 text-xs font-semibold leading-snug ${metric.accent} sm:mt-3`}>{metric.delta}</div>
               </CardContent>
             </Card>
           ))}
