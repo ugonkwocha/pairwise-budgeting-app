@@ -161,7 +161,7 @@ export default function Navbar() {
             onClick={() => setIsMobileOpen(false)}
             aria-label="Close navigation overlay"
           />
-          <div className="relative h-full w-72 max-w-[85vw] shadow-2xl">{sidebar}</div>
+          <div className="relative ml-auto h-full w-72 max-w-[85vw] shadow-2xl">{sidebar}</div>
         </div>
       )}
     </>
