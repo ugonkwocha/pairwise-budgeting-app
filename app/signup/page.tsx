@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { AuthAlert, AuthShell, authButtonClass, authInputClass } from '@/components/auth/AuthShell';
 
+const PENDING_INVITE_PATH_KEY = 'pairwise:pending-invite-path';
+
 export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [successEmail, setSuccessEmail] = useState('');
   const [existingEmail, setExistingEmail] = useState('');
+  const [existingAccountNext, setExistingAccountNext] = useState('/onboarding');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -47,6 +50,10 @@ export default function SignupPage() {
       const params = new URLSearchParams(window.location.search);
       const next = params.get('next') || '/onboarding';
 
+      if (next.startsWith('/invite/')) {
+        window.localStorage.setItem(PENDING_INVITE_PATH_KEY, next);
+      }
+
       // Sign up user
       const { data, error: signupError } = await supabase.auth.signUp({
         email: normalizedEmail,
@@ -62,6 +69,7 @@ export default function SignupPage() {
       if (signupError) {
         if (signupError.message.toLowerCase().includes('already')) {
           setExistingEmail(normalizedEmail);
+          setExistingAccountNext(next);
           setPassword('');
           setConfirmPassword('');
           return;
@@ -73,6 +81,7 @@ export default function SignupPage() {
 
       if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
         setExistingEmail(normalizedEmail);
+        setExistingAccountNext(next);
         setPassword('');
         setConfirmPassword('');
         return;
@@ -121,7 +130,7 @@ export default function SignupPage() {
               </p>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                 <Link
-                  href={`/login?email=${encodeURIComponent(existingEmail)}`}
+                  href={`/login?email=${encodeURIComponent(existingEmail)}&next=${encodeURIComponent(existingAccountNext)}`}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-700"
                 >
                   Sign in

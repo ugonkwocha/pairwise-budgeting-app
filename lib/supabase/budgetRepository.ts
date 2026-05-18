@@ -269,6 +269,23 @@ export async function loadBudgetData(): Promise<{
   const access = accessRows?.[0];
   const householdId = access?.status === 'active' ? access.household_id : null;
   if (!householdId) {
+    if (!access?.status || access.status === 'invited') {
+      const { data: acceptedInvites, error: acceptError } = await (supabase as any)
+        .rpc('accept_pending_household_invite_for_me');
+
+      if (acceptError) {
+        const isMissingRecoveryFunction =
+          acceptError.code === '42883' ||
+          String(acceptError.message || '').includes('accept_pending_household_invite_for_me');
+
+        if (!isMissingRecoveryFunction) {
+          throw acceptError;
+        }
+      } else if (acceptedInvites?.[0]?.household_id) {
+        return loadBudgetData();
+      }
+    }
+
     return {
       data: freshInitialStorage(),
       isAuthenticated: true,

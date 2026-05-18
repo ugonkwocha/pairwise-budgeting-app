@@ -4,6 +4,8 @@ import { useBudget } from '@/lib/contexts/BudgetContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+const PENDING_INVITE_PATH_KEY = 'pairwise:pending-invite-path';
+
 export default function Home() {
   const { onboardingCompleted, isAuthenticated, isLoading } = useBudget();
   const router = useRouter();
@@ -13,6 +15,14 @@ export default function Home() {
       if (!isAuthenticated) {
         router.push('/login');
       } else if (!onboardingCompleted) {
+        const pendingInvitePath = window.localStorage.getItem(PENDING_INVITE_PATH_KEY);
+
+        if (pendingInvitePath?.startsWith('/invite/')) {
+          window.localStorage.removeItem(PENDING_INVITE_PATH_KEY);
+          router.push(pendingInvitePath);
+          return;
+        }
+
         router.push('/onboarding');
       } else {
         router.push('/dashboard');

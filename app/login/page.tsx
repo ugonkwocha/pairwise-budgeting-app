@@ -10,14 +10,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [nextPath, setNextPath] = useState('/');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
+    const next = params.get('next') || '/';
 
     if (emailParam) {
       setEmail(emailParam);
     }
+
+    setNextPath(next.startsWith('/') ? next : '/');
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -110,7 +114,7 @@ export default function LoginPage() {
             </Link>
             <div className="text-center text-slate-500">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-semibold text-blue-600 hover:text-blue-700">
+              <Link href={`/signup?next=${encodeURIComponent(nextPath)}`} className="font-semibold text-blue-600 hover:text-blue-700">
                 Sign up
               </Link>
             </div>
