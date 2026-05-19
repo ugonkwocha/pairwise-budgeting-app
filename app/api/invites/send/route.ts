@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@/lib/supabase/server';
+import { getAuthUserName } from '@/lib/supabase/authUser';
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'A valid invite link is required' }, { status: 400 });
   }
 
-  const inviterName = user.user_metadata?.name || user.email?.split('@')[0] || 'A household member';
+  const inviterName = getAuthUserName(user);
   const resend = new Resend(resendApiKey);
 
   const subject = `${inviterName} invited you to join ${householdName} on PairWise`;

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { AuthAlert, AuthShell, authButtonClass, authInputClass } from '@/components/auth/AuthShell';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,10 +16,15 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
+    const errorParam = params.get('error');
     const next = params.get('next') || '/';
 
     if (emailParam) {
       setEmail(emailParam);
+    }
+
+    if (errorParam) {
+      setError(errorParam);
     }
 
     setNextPath(next.startsWith('/') ? next : '/');
@@ -65,7 +71,16 @@ export default function LoginPage() {
             </AuthAlert>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <div className="space-y-4">
+            <GoogleAuthButton label="Continue with Google" nextPath={nextPath} onError={setError} />
+            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />
+              <span>Email</span>
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="mt-4 space-y-4">
             <div>
               <label htmlFor="email" className="mb-2 block text-sm font-semibold text-slate-700">
                 Email

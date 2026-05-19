@@ -6,6 +6,7 @@ import { useBudget } from '@/lib/contexts/BudgetContext';
 import { Household, User, IncomeSource, Category } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
+import { getAuthUserName } from '@/lib/supabase/authUser';
 import StepIndicator from './StepIndicator';
 import HouseholdStep from './HouseholdStep';
 import MembersStep from './MembersStep';
@@ -44,7 +45,7 @@ export default function OnboardingWizard() {
       if (!user) return;
 
       setPrimaryMember({
-        name: user.user_metadata?.name || user.email?.split('@')[0] || 'Primary member',
+        name: getAuthUserName(user),
         email: user.email || '',
       });
     };

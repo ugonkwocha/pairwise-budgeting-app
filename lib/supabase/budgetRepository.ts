@@ -1,6 +1,7 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import { getAuthUserName } from '@/lib/supabase/authUser';
 import { INITIAL_STORAGE } from '@/lib/storage/schema';
 import { getCurrentLocalMonth } from '@/lib/utils/dateUtils';
 import type { BudgetStorageSchema } from '@/lib/storage/schema';
@@ -254,7 +255,7 @@ export async function loadBudgetData(): Promise<{
   await supabase.from('profiles').upsert({
     id: user.id,
     email: user.email,
-    name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    name: getAuthUserName(user),
   } as any);
 
   const accessRows = await throwIfError(

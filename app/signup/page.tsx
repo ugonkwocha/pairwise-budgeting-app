@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { AuthAlert, AuthShell, authButtonClass, authInputClass } from '@/components/auth/AuthShell';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 
 const PENDING_INVITE_PATH_KEY = 'pairwise:pending-invite-path';
 
@@ -18,7 +19,14 @@ export default function SignupPage() {
   const [existingEmail, setExistingEmail] = useState('');
   const [existingAccountNext, setExistingAccountNext] = useState('/onboarding');
   const [loading, setLoading] = useState(false);
+  const [nextPath, setNextPath] = useState('/onboarding');
   const router = useRouter();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get('next') || '/onboarding';
+    setNextPath(next.startsWith('/') ? next : '/onboarding');
+  }, []);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,9 +57,11 @@ export default function SignupPage() {
       const supabase = createClient();
       const params = new URLSearchParams(window.location.search);
       const next = params.get('next') || '/onboarding';
+      const safeNext = next.startsWith('/') ? next : '/onboarding';
+      setNextPath(safeNext);
 
-      if (next.startsWith('/invite/')) {
-        window.localStorage.setItem(PENDING_INVITE_PATH_KEY, next);
+      if (safeNext.startsWith('/invite/')) {
+        window.localStorage.setItem(PENDING_INVITE_PATH_KEY, safeNext);
       }
 
       // Sign up user
@@ -59,7 +69,7 @@ export default function SignupPage() {
         email: normalizedEmail,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
           data: {
             name,
           },
@@ -69,7 +79,7 @@ export default function SignupPage() {
       if (signupError) {
         if (signupError.message.toLowerCase().includes('already')) {
           setExistingEmail(normalizedEmail);
-          setExistingAccountNext(next);
+          setExistingAccountNext(safeNext);
           setPassword('');
           setConfirmPassword('');
           return;
@@ -81,14 +91,14 @@ export default function SignupPage() {
 
       if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
         setExistingEmail(normalizedEmail);
-        setExistingAccountNext(next);
+        setExistingAccountNext(safeNext);
         setPassword('');
         setConfirmPassword('');
         return;
       }
 
       if (data.session) {
-        router.push(next);
+        router.push(safeNext);
         return;
       }
 
@@ -145,7 +155,16 @@ export default function SignupPage() {
             </AuthAlert>
           )}
 
-          <form onSubmit={handleSignup} className="space-y-4">
+          <div className="space-y-4">
+            <GoogleAuthButton label="Continue with Google" nextPath={nextPath} onError={setError} />
+            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              <span className="h-px flex-1 bg-slate-200" />
+              <span>Email</span>
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+          </div>
+
+          <form onSubmit={handleSignup} className="mt-4 space-y-4">
             <div>
               <label htmlFor="name" className="mb-2 block text-sm font-semibold text-slate-700">
                 Full Name
