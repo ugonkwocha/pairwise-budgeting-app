@@ -10,6 +10,7 @@ import {
   FiDollarSign,
   FiRepeat,
   FiTarget,
+  FiTrash2,
 } from 'react-icons/fi';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
 import { Button } from '@/components/ui/Button';
@@ -28,6 +29,8 @@ interface CalendarItem {
   subtitle: string;
   amount?: number;
   recurringId?: string;
+  actualId?: string;
+  actualType?: 'income' | 'expense';
 }
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -139,6 +142,18 @@ function itemIcon(type: CalendarItemType) {
   return FiTarget;
 }
 
+function isPostedFromRecurring(item: RecurringTransaction, date: string, actuals: { date: string; amount: number; userId: string; sourceId?: string; sourceName?: string; categoryId?: string; categoryName?: string; notes?: string }[]) {
+  return actuals.some((actual) =>
+    actual.date === date &&
+    actual.amount === item.amount &&
+    actual.userId === item.userId &&
+    (item.type === 'income'
+      ? actual.sourceId === item.sourceId || actual.sourceName === (item.sourceName || item.name)
+      : actual.categoryId === item.categoryId || actual.categoryName === (item.categoryName || item.name)) &&
+    (actual.notes === item.name || actual.notes?.startsWith(`${item.name}:`))
+  );
+}
+
 export default function CalendarPage() {
   const {
     household,
@@ -148,10 +163,14 @@ export default function CalendarPage() {
     recurringTransactions,
     savingsGoals,
     postRecurringTransaction,
+    deleteIncome,
+    deleteExpense,
   } = useBudget();
 
   const today = getLocalDateString();
   const [selectedDate, setSelectedDate] = useState(today.startsWith(currentMonth) ? today : `${currentMonth}-01`);
+  const [postingId, setPostingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const currency = household?.currency === 'NGN' ? '₦' : '$';
   const calendarDays = useMemo(() => getCalendarDays(currentMonth), [currentMonth]);
@@ -170,6 +189,8 @@ export default function CalendarPage() {
         title: income.sourceName,
         subtitle: income.userName,
         amount: income.amount,
+        actualId: income.id,
+        actualType: 'income' as const,
       }));
 
     const actualExpenseItems = expenses
@@ -181,9 +202,19 @@ export default function CalendarPage() {
         title: expense.categoryName,
         subtitle: expense.userName,
         amount: expense.amount,
+        actualId: expense.id,
+        actualType: 'expense' as const,
       }));
 
-    const recurringItems = recurringTransactions.flatMap((item) => generateRecurringOccurrences(item, currentMonth));
+    const recurringItems = recurringTransactions
+      .flatMap((recurring) =>
+        generateRecurringOccurrences(recurring, currentMonth)
+          .filter((occurrence) =>
+            recurring.type === 'income'
+              ? !isPostedFromRecurring(recurring, occurrence.date, incomes)
+              : !isPostedFromRecurring(recurring, occurrence.date, expenses)
+          )
+      );
 
     const goalItems = savingsGoals
       .filter((goal) => goal.deadline?.startsWith(currentMonth))
@@ -234,6 +265,40 @@ export default function CalendarPage() {
 
   if (!household) return null;
 
+  const handlePostRecurring = async (item: CalendarItem) => {
+    if (!item.recurringId) return;
+    setPostingId(item.recurringId);
+    setNotice(null);
+
+    try {
+      const result = await postRecurringTransaction(item.recurringId);
+      const postedDate = result?.income?.date || result?.expense?.date || item.date;
+      setNotice({
+        type: 'success',
+        message: `${item.title} was posted for ${formatLocalDate(postedDate)}. Delete the posted entry on this calendar day to reverse it.`,
+      });
+    } catch (err) {
+      setNotice({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Unable to post recurring item.',
+      });
+    } finally {
+      setPostingId(null);
+    }
+  };
+
+  const handleDeleteActualItem = (item: CalendarItem) => {
+    if (!item.actualId || !item.actualType) return;
+
+    if (item.actualType === 'income') {
+      deleteIncome(item.actualId);
+      setNotice({ type: 'success', message: `${item.title} income was deleted.` });
+    } else {
+      deleteExpense(item.actualId);
+      setNotice({ type: 'success', message: `${item.title} expense was deleted.` });
+    }
+  };
+
   const renderAgendaItem = (item: CalendarItem) => {
     const Icon = itemIcon(item.type);
     const dueIn = daysUntil(item.date);
@@ -266,10 +331,21 @@ export default function CalendarPage() {
               {item.amount.toFixed(2)}
             </p>
           )}
+          {item.actualId && (
+            <Button type="button" size="sm" variant="ghost" onClick={() => handleDeleteActualItem(item)}>
+              <FiTrash2 className="h-4 w-4" aria-hidden="true" />
+              Delete
+            </Button>
+          )}
           {item.recurringId && item.date <= today && (
-            <Button type="button" size="sm" onClick={() => postRecurringTransaction(item.recurringId as string)}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={postingId === item.recurringId}
+              onClick={() => handlePostRecurring(item)}
+            >
               <FiCheckCircle className="h-4 w-4" aria-hidden="true" />
-              Post
+              {postingId === item.recurringId ? 'Posting...' : 'Post'}
             </Button>
           )}
         </div>
@@ -296,6 +372,16 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
+
+        {notice && (
+          <div className={`mb-5 rounded-lg border px-4 py-3 text-sm font-medium ${
+            notice.type === 'success'
+              ? 'border-teal-200 bg-teal-50 text-teal-800'
+              : 'border-red-200 bg-red-50 text-red-700'
+          }`}>
+            {notice.message}
+          </div>
+        )}
 
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {metricCards.map((metric) => (

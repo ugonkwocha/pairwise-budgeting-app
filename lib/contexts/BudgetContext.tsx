@@ -19,6 +19,7 @@ import {
   MemberInviteResult,
   HouseholdInvite,
   RecurringTransaction,
+  PostedRecurringTransactionResult,
 } from '@/types';
 import { BudgetStorageSchema } from '@/lib/storage/schema';
 import { calculateBudgetSummary, calculateCategorySpending, calculateIncomeBreakdown } from '@/lib/calculations/budgetCalculations';
@@ -69,7 +70,7 @@ export interface BudgetContextType {
   addRecurringTransaction: (recurring: Omit<RecurringTransaction, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateRecurringTransaction: (recurringId: string, updates: Partial<RecurringTransaction>) => void;
   deleteRecurringTransaction: (recurringId: string) => void;
-  postRecurringTransaction: (recurringId: string) => void;
+  postRecurringTransaction: (recurringId: string) => Promise<PostedRecurringTransactionResult | null>;
   addIncomeSource: (source: Omit<IncomeSource, 'id' | 'createdAt'>) => void;
   updateIncomeSource: (sourceId: string, updates: Partial<IncomeSource>) => void;
   deleteIncomeSource: (sourceId: string) => void;
@@ -450,24 +451,50 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
       .catch((err) => handleRepositoryError(err, 'Unable to delete recurring item'));
   }, [handleRepositoryError]);
 
-  const postRecurringTransactionAction = useCallback((recurringId: string) => {
-    if (!data) return;
+  const postRecurringTransactionAction = useCallback(async (recurringId: string) => {
+    if (!data) return null;
     const recurring = data.recurringTransactions.find((item) => item.id === recurringId);
-    if (!recurring) return;
+    if (!recurring) return null;
 
-    budgetRepository.postRecurringTransaction(recurring, data)
-      .then((result) => {
-        setData((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            recurringTransactions: prev.recurringTransactions.map((item) => item.id === recurringId ? result.recurring : item),
-            incomes: result.income ? [result.income, ...prev.incomes] : prev.incomes,
-            expenses: result.expense ? [result.expense, ...prev.expenses] : prev.expenses,
-          };
-        });
-      })
-      .catch((err) => handleRepositoryError(err, 'Unable to post recurring item'));
+    const alreadyPosted = recurring.type === 'income'
+      ? data.incomes.some((income) =>
+          income.date === recurring.nextDueDate &&
+          income.amount === recurring.amount &&
+          income.userId === recurring.userId &&
+          (income.sourceId === recurring.sourceId || income.sourceName === (recurring.sourceName || recurring.name)) &&
+          (income.notes === recurring.name || income.notes?.startsWith(`${recurring.name}:`))
+        )
+      : data.expenses.some((expense) =>
+          expense.date === recurring.nextDueDate &&
+          expense.amount === recurring.amount &&
+          expense.userId === recurring.userId &&
+          (expense.categoryId === recurring.categoryId || expense.categoryName === (recurring.categoryName || recurring.name)) &&
+          (expense.notes === recurring.name || expense.notes?.startsWith(`${recurring.name}:`))
+        );
+
+    if (alreadyPosted) {
+      const message = `${recurring.name} is already posted for ${recurring.nextDueDate}. Delete the posted ${recurring.type} before posting it again.`;
+      setError(message);
+      throw new Error(message);
+    }
+
+    try {
+      const result = await budgetRepository.postRecurringTransaction(recurring, data);
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          recurringTransactions: prev.recurringTransactions.map((item) => item.id === recurringId ? result.recurring : item),
+          incomes: result.income ? [result.income, ...prev.incomes] : prev.incomes,
+          expenses: result.expense ? [result.expense, ...prev.expenses] : prev.expenses,
+        };
+      });
+      setError(null);
+      return result;
+    } catch (err) {
+      handleRepositoryError(err, 'Unable to post recurring item');
+      throw err;
+    }
   }, [data, handleRepositoryError]);
 
   const addIncomeSource = useCallback((source: Omit<IncomeSource, 'id' | 'createdAt'>) => {

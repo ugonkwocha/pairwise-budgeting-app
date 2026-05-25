@@ -44,6 +44,8 @@ export default function RecurringPage() {
   } = useBudget();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecurring, setEditingRecurring] = useState<RecurringTransaction | null>(null);
+  const [postingId, setPostingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const activeItems = recurringTransactions.filter((item) => item.isActive);
   const inactiveItems = recurringTransactions.filter((item) => !item.isActive);
@@ -71,6 +73,27 @@ export default function RecurringPage() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingRecurring(null);
+  };
+
+  const handlePostRecurring = async (item: RecurringTransaction) => {
+    setPostingId(item.id);
+    setNotice(null);
+
+    try {
+      const result = await postRecurringTransaction(item.id);
+      const postedDate = result?.income?.date || result?.expense?.date || item.nextDueDate;
+      setNotice({
+        type: 'success',
+        message: `${item.name} was posted for ${formatDate(postedDate)}. To reverse it, delete the posted ${item.type} entry.`,
+      });
+    } catch (err) {
+      setNotice({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Unable to post recurring item.',
+      });
+    } finally {
+      setPostingId(null);
+    }
   };
 
   const renderRecurringRow = (item: RecurringTransaction) => {
@@ -104,9 +127,14 @@ export default function RecurringPage() {
         </div>
         <div className="flex flex-wrap gap-2 md:justify-end">
           {item.isActive && (
-            <Button type="button" size="sm" onClick={() => postRecurringTransaction(item.id)}>
+            <Button
+              type="button"
+              size="sm"
+              disabled={postingId === item.id}
+              onClick={() => handlePostRecurring(item)}
+            >
               <FiCheckCircle className="h-4 w-4" aria-hidden="true" />
-              Post
+              {postingId === item.id ? 'Posting...' : 'Post'}
             </Button>
           )}
           <Button type="button" size="sm" variant="secondary" onClick={() => openEditModal(item)}>
@@ -140,6 +168,16 @@ export default function RecurringPage() {
             </Button>
           </div>
         </div>
+
+        {notice && (
+          <div className={`mb-5 rounded-lg border px-4 py-3 text-sm font-medium ${
+            notice.type === 'success'
+              ? 'border-teal-200 bg-teal-50 text-teal-800'
+              : 'border-red-200 bg-red-50 text-red-700'
+          }`}>
+            {notice.message}
+          </div>
+        )}
 
         <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
           <Card className="border-slate-200 bg-white lg:col-span-2">

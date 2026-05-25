@@ -166,6 +166,12 @@ export interface RecurringTransaction {
   updatedAt: string;
 }
 
+export interface PostedRecurringTransactionResult {
+  recurring: RecurringTransaction;
+  income?: Income;
+  expense?: Expense;
+}
+
 export interface Alert {
   id: string;
   type: 'category_warning' | 'category_exceeded' | 'total_exceeded' | 'info';
