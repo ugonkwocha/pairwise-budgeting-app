@@ -47,6 +47,7 @@ export default function Navbar() {
     { href: '/transactions', label: 'Transactions', icon: FiTrendingUp },
     { href: '/recurring', label: 'Recurring', icon: FiRepeat },
     { href: '/savings', label: 'Savings', icon: FiTarget },
+    { href: '/calendar', label: 'Calendar', icon: FiCalendar },
     { href: '/income', label: 'Income', icon: FiDollarSign },
     { href: '/expenses', label: 'Expenses', icon: FiCreditCard },
     { href: '/settings', label: 'Settings', icon: FiSettings },
@@ -100,10 +101,6 @@ export default function Navbar() {
         </nav>
 
         <div className="mt-8 space-y-1 border-t border-slate-100 pt-5">
-          <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400">
-            <FiCalendar className="h-4 w-4" aria-hidden="true" />
-            Calendar
-          </div>
           <div className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-400">
             <FiBookOpen className="h-4 w-4" aria-hidden="true" />
             Reports
