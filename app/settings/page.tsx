@@ -169,6 +169,8 @@ export default function SettingsPage() {
     return <div>Loading...</div>;
   }
 
+  const currencySymbol = household.currency === 'NGN' ? '₦' : '$';
+
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
       <div className="mx-auto max-w-[1600px]">
@@ -382,6 +384,10 @@ export default function SettingsPage() {
                       {source.description && (
                         <div className="mt-1 break-words text-sm text-slate-500">{source.description}</div>
                       )}
+                      <div className="mt-2 text-sm text-slate-500">
+                        {currencySymbol}
+                        {(source.monthlyAmount || 0).toFixed(2)} planned monthly income
+                      </div>
                     </div>
                     {isPrimaryMember && (
                       <div className="grid grid-cols-2 gap-2 min-[420px]:flex">
@@ -452,7 +458,7 @@ export default function SettingsPage() {
                             )}
                           </div>
                           <div className="mt-2 text-sm text-slate-500">
-                            {household.currency === 'NGN' ? '₦' : '$'}
+                            {currencySymbol}
                             {category.monthlyBudget.toFixed(2)} monthly budget
                           </div>
                         </div>

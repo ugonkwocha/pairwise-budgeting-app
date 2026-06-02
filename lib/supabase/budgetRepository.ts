@@ -77,6 +77,7 @@ function toIncomeSource(row: any): IncomeSource {
     id: row.id,
     name: row.name,
     description: row.description || undefined,
+    monthlyAmount: Number(row.monthly_amount || 0),
     createdAt: row.created_at,
   };
 }
@@ -401,6 +402,7 @@ export async function createHouseholdSetup(
       income_sources: incomeSources.map((source) => ({
         name: source.name,
         description: source.description || null,
+        monthlyAmount: source.monthlyAmount || 0,
       })),
       categories: categories.map((category) => ({
         name: category.name,
@@ -756,7 +758,12 @@ export async function insertIncomeSource(source: Omit<IncomeSource, 'id' | 'crea
   const row = await throwIfError(
     await createClient()
       .from('income_sources')
-      .insert({ household_id: householdId, name: source.name, description: source.description || null } as any)
+      .insert({
+        household_id: householdId,
+        name: source.name,
+        description: source.description || null,
+        monthly_amount: source.monthlyAmount || 0,
+      } as any)
       .select('*')
       .single()
   );
@@ -765,10 +772,16 @@ export async function insertIncomeSource(source: Omit<IncomeSource, 'id' | 'crea
 
 export async function updateIncomeSourceRow(sourceId: string, updates: Partial<IncomeSource>): Promise<IncomeSource> {
   const supabase = createClient();
+  const updatePayload: Record<string, string | number | null> = {};
+
+  if (updates.name !== undefined) updatePayload.name = updates.name;
+  if (updates.description !== undefined) updatePayload.description = updates.description || null;
+  if (updates.monthlyAmount !== undefined) updatePayload.monthly_amount = updates.monthlyAmount;
+
   const row = await throwIfError(
     await supabase
       .from('income_sources')
-      .update({ name: updates.name, description: updates.description ?? null } as any)
+      .update(updatePayload as any)
       .eq('id', sourceId)
       .select('*')
       .single()

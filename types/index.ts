@@ -41,6 +41,7 @@ export interface IncomeSource {
   id: string;
   name: string;
   description?: string;
+  monthlyAmount: number;
   createdAt: string;
 }
 

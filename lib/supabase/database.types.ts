@@ -165,18 +165,24 @@ export type Database = {
           id: string;
           household_id: string;
           name: string;
+          description: string | null;
+          monthly_amount: number;
           created_at: string;
         };
         Insert: {
           id?: string;
           household_id: string;
           name: string;
+          description?: string | null;
+          monthly_amount?: number;
           created_at?: string;
         };
         Update: {
           id?: string;
           household_id?: string;
           name?: string;
+          description?: string | null;
+          monthly_amount?: number;
           created_at?: string;
         };
         Relationships: [

@@ -17,12 +17,14 @@ export function EditIncomeSourceModal({ isOpen, onClose, source }: EditIncomeSou
   const { updateIncomeSource, incomeSources } = useBudget();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [monthlyAmount, setMonthlyAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (source && isOpen) {
       setName(source.name);
       setDescription(source.description || '');
+      setMonthlyAmount(String(source.monthlyAmount || 0));
     }
   }, [source, isOpen]);
 
@@ -43,11 +45,18 @@ export function EditIncomeSourceModal({ isOpen, onClose, source }: EditIncomeSou
       return;
     }
 
+    const plannedAmount = Number(monthlyAmount || 0);
+    if (!Number.isFinite(plannedAmount) || plannedAmount < 0) {
+      alert('Planned monthly amount must be 0 or greater');
+      return;
+    }
+
     setIsSubmitting(true);
 
     updateIncomeSource(source.id, {
       name: name.trim(),
       description: description.trim() || undefined,
+      monthlyAmount: plannedAmount,
     });
 
     setIsSubmitting(false);
@@ -70,6 +79,16 @@ export function EditIncomeSourceModal({ isOpen, onClose, source }: EditIncomeSou
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add notes about this income source"
+        />
+
+        <Input
+          label="Planned monthly amount"
+          type="number"
+          min="0"
+          step="0.01"
+          value={monthlyAmount}
+          onChange={(e) => setMonthlyAmount(e.target.value)}
+          placeholder="0.00"
         />
 
         <div className="flex gap-3 justify-end pt-4">

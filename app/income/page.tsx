@@ -10,10 +10,10 @@ import { ConfirmDeleteModal } from '@/components/settings/ConfirmDeleteModal';
 import MonthNavigation from '@/components/navigation/MonthNavigation';
 import { compareDateStrings, formatLocalDate } from '@/lib/utils/dateUtils';
 import type { Income } from '@/types';
-import { FiPlus, FiTrendingUp } from 'react-icons/fi';
+import { FiPlus, FiTarget, FiTrendingUp } from 'react-icons/fi';
 
 export default function IncomePage() {
-  const { incomes, currentMonth, household, deleteIncome } = useBudget();
+  const { incomes, incomeSources, currentMonth, household, deleteIncome } = useBudget();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -21,6 +21,8 @@ export default function IncomePage() {
 
   const monthIncomes = incomes.filter((i) => i.date.startsWith(currentMonth));
   const totalIncome = monthIncomes.reduce((sum, i) => sum + i.amount, 0);
+  const plannedIncome = incomeSources.reduce((sum, source) => sum + (source.monthlyAmount || 0), 0);
+  const plannedProgress = plannedIncome > 0 ? (totalIncome / plannedIncome) * 100 : 0;
   const currency = household?.currency === 'NGN' ? '₦' : '$';
 
   const handleEditIncome = (income: Income) => {
@@ -57,21 +59,41 @@ export default function IncomePage() {
           </div>
         </div>
 
-        <Card className="mb-7 border-0 bg-teal-50">
-          <CardHeader className="mb-3 flex flex-row items-center justify-between">
-            <CardTitle className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Income This Month</CardTitle>
-            <span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-teal-600 shadow-sm">
-              <FiTrendingUp className="h-4 w-4" aria-hidden="true" />
-            </span>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold tracking-tight text-slate-950">
-              {currency}
-              {totalIncome.toFixed(2)}
-            </div>
-            <p className="mt-3 text-xs font-semibold text-teal-600">{monthIncomes.length} entries this month</p>
-          </CardContent>
-        </Card>
+        <div className="mb-7 grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <Card className="border-0 bg-teal-50">
+            <CardHeader className="mb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Income This Month</CardTitle>
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-teal-600 shadow-sm">
+                <FiTrendingUp className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold tracking-tight text-slate-950">
+                {currency}
+                {totalIncome.toFixed(2)}
+              </div>
+              <p className="mt-3 text-xs font-semibold text-teal-600">{monthIncomes.length} entries this month</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-blue-50">
+            <CardHeader className="mb-3 flex flex-row items-center justify-between">
+              <CardTitle className="text-xs font-semibold uppercase tracking-wide text-slate-500">Planned Income This Month</CardTitle>
+              <span className="grid h-10 w-10 place-items-center rounded-lg bg-white text-blue-600 shadow-sm">
+                <FiTarget className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold tracking-tight text-slate-950">
+                {currency}
+                {plannedIncome.toFixed(2)}
+              </div>
+              <p className="mt-3 text-xs font-semibold text-blue-600">
+                {plannedIncome > 0 ? `${plannedProgress.toFixed(1)}% recorded` : 'No planned income set'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="border-slate-200 bg-white p-0">
           <CardHeader className="mb-0 border-b border-slate-100 p-5">

@@ -17,17 +17,20 @@ interface IncomeStepProps {
 
 export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
   const defaultSources: Omit<IncomeSource, 'id' | 'createdAt'>[] = [
-    { name: 'Salary/Wages', description: 'Employment income' },
-    { name: 'Bonus', description: 'Annual or periodic bonuses' },
-    { name: 'Other', description: 'Other income sources' },
+    { name: 'Salary/Wages', description: 'Employment income', monthlyAmount: 0 },
+    { name: 'Bonus', description: 'Annual or periodic bonuses', monthlyAmount: 0 },
+    { name: 'Other', description: 'Other income sources', monthlyAmount: 0 },
   ];
 
   const [sources, setSources] = useState<Omit<IncomeSource, 'id' | 'createdAt'>[]>(
-    data.incomeSources.length > 0 ? data.incomeSources : defaultSources
+    data.incomeSources.length > 0
+      ? data.incomeSources.map((source) => ({ ...source, monthlyAmount: source.monthlyAmount || 0 }))
+      : defaultSources
   );
   const [newSource, setNewSource] = useState('');
+  const [newSourceAmount, setNewSourceAmount] = useState('');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [draftSource, setDraftSource] = useState({ name: '', description: '' });
+  const [draftSource, setDraftSource] = useState({ name: '', description: '', monthlyAmount: '' });
 
   // Ensure default sources are saved to parent on mount
   React.useEffect(() => {
@@ -38,10 +41,14 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
 
   const handleAddSource = () => {
     if (newSource.trim() && !sources.some((s) => s.name.toLowerCase() === newSource.trim().toLowerCase())) {
-      const updated = [...sources, { name: newSource.trim(), description: '' }];
+      const plannedAmount = Number(newSourceAmount || 0);
+      if (!Number.isFinite(plannedAmount) || plannedAmount < 0) return;
+
+      const updated = [...sources, { name: newSource.trim(), description: '', monthlyAmount: plannedAmount }];
       setSources(updated);
       onUpdate.setIncomeSources(updated);
       setNewSource('');
+      setNewSourceAmount('');
     }
   };
 
@@ -51,12 +58,13 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
     setDraftSource({
       name: source.name,
       description: source.description || '',
+      monthlyAmount: String(source.monthlyAmount || 0),
     });
   };
 
   const cancelEditing = () => {
     setEditingIndex(null);
-    setDraftSource({ name: '', description: '' });
+    setDraftSource({ name: '', description: '', monthlyAmount: '' });
   };
 
   const saveSource = () => {
@@ -64,14 +72,15 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
 
     const name = draftSource.name.trim();
     const description = draftSource.description.trim();
+    const monthlyAmount = Number(draftSource.monthlyAmount || 0);
     const duplicate = sources.some(
       (source, index) => index !== editingIndex && source.name.toLowerCase() === name.toLowerCase()
     );
 
-    if (!name || duplicate) return;
+    if (!name || duplicate || !Number.isFinite(monthlyAmount) || monthlyAmount < 0) return;
 
     const updated = sources.map((source, index) =>
-      index === editingIndex ? { ...source, name, description } : source
+      index === editingIndex ? { ...source, name, description, monthlyAmount } : source
     );
     setSources(updated);
     onUpdate.setIncomeSources(updated);
@@ -111,6 +120,16 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
                   onKeyDown={(event) => event.key === 'Enter' && saveSource()}
                   placeholder="Description"
                 />
+                <Input
+                  aria-label="Planned monthly amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={draftSource.monthlyAmount}
+                  onChange={(event) => setDraftSource((draft) => ({ ...draft, monthlyAmount: event.target.value }))}
+                  onKeyDown={(event) => event.key === 'Enter' && saveSource()}
+                  placeholder="Planned monthly amount"
+                />
                 <div className="grid grid-cols-2 gap-2">
                   <Button size="sm" onClick={saveSource} className="gap-2">
                     <FiCheck aria-hidden="true" />
@@ -129,6 +148,9 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
                   {source.description && (
                     <div className="break-words text-sm text-gray-600">{source.description}</div>
                   )}
+                  <div className="mt-1 text-sm font-medium text-gray-600">
+                    Planned: ${(source.monthlyAmount || 0).toFixed(2)}/month
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
                   <Button
@@ -156,11 +178,20 @@ export default function IncomeStep({ data, onUpdate }: IncomeStepProps) {
         ))}
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_180px_auto]">
         <Input
           placeholder="Add new income source"
           value={newSource}
           onChange={(e) => setNewSource(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleAddSource()}
+        />
+        <Input
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Monthly amount"
+          value={newSourceAmount}
+          onChange={(e) => setNewSourceAmount(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAddSource()}
         />
         <Button onClick={handleAddSource} variant="secondary" className="sm:w-auto">

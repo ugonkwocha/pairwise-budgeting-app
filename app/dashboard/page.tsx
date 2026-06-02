@@ -39,7 +39,7 @@ export default function DashboardPage() {
   const {
     budgetSummary,
     categorySpending,
-    incomeBreakdown,
+    incomeSources,
     household,
     activeAlerts,
     currentMonth,
@@ -81,6 +81,10 @@ export default function DashboardPage() {
   const spentPercentage = budgetSummary.totalBudgeted > 0
     ? (budgetSummary.totalSpent / budgetSummary.totalBudgeted) * 100
     : 0;
+  const plannedIncome = incomeSources.reduce((sum, source) => sum + (source.monthlyAmount || 0), 0);
+  const plannedIncomePercentage = plannedIncome > 0
+    ? (budgetSummary.totalIncome / plannedIncome) * 100
+    : 0;
 
   const metrics = [
     {
@@ -89,7 +93,7 @@ export default function DashboardPage() {
       icon: FiArrowUpRight,
       accent: 'text-teal-600',
       surface: 'bg-teal-50',
-      delta: '+ current month',
+      delta: plannedIncome > 0 ? `${plannedIncomePercentage.toFixed(1)}% of planned` : '+ current month',
     },
     {
       label: 'Budgeted',
@@ -139,6 +143,18 @@ export default function DashboardPage() {
     .filter((item) => item.isActive && item.type === 'expense')
     .sort((a, b) => a.nextDueDate.localeCompare(b.nextDueDate))
     .slice(0, 5);
+  const incomeSourceSummaries = incomeSources.map((source) => {
+    const actual = incomes
+      .filter((income) => income.date.startsWith(currentMonth) && income.sourceId === source.id)
+      .reduce((sum, income) => sum + income.amount, 0);
+    const sourcePlanned = source.monthlyAmount || 0;
+    return {
+      ...source,
+      actual,
+      planned: sourcePlanned,
+      percentage: sourcePlanned > 0 ? (actual / sourcePlanned) * 100 : 0,
+    };
+  });
   const topSavingsGoals = [...savingsGoals]
     .sort((a, b) => b.currentAmount / Math.max(b.targetAmount, 1) - a.currentAmount / Math.max(a.targetAmount, 1))
     .slice(0, 4);
@@ -359,20 +375,22 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {incomeBreakdown.map((income) => (
-                  <div key={income.sourceId} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3">
+                {incomeSourceSummaries.map((income) => (
+                  <div key={income.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3">
                     <div className="min-w-0">
-                      <p className="font-medium text-slate-900">{income.sourceName}</p>
-                      <p className="mt-1 text-xs font-medium text-slate-500">{income.percentage.toFixed(1)}% of income</p>
+                      <p className="font-medium text-slate-900">{income.name}</p>
+                      <p className="mt-1 text-xs font-medium text-slate-500">
+                        {income.planned > 0 ? `${income.percentage.toFixed(1)}% of planned` : 'No planned amount set'}
+                      </p>
                     </div>
                     <div className="shrink-0 text-sm font-semibold text-slate-950">
                       {currencySymbol}
-                      {income.amount.toFixed(2)}
+                      {income.actual.toFixed(2)}
                     </div>
                   </div>
                 ))}
-                {incomeBreakdown.length === 0 && (
-                  <p className="text-sm text-slate-500">No income recorded for this month.</p>
+                {incomeSourceSummaries.length === 0 && (
+                  <p className="text-sm text-slate-500">No income sources yet.</p>
                 )}
               </div>
             </CardContent>
