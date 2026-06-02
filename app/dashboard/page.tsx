@@ -88,7 +88,15 @@ export default function DashboardPage() {
 
   const metrics = [
     {
-      label: 'Total Income',
+      label: 'Planned Income',
+      value: plannedIncome,
+      icon: FiTarget,
+      accent: 'text-blue-600',
+      surface: 'bg-blue-50',
+      delta: 'expected monthly',
+    },
+    {
+      label: 'Actual Income',
       value: budgetSummary.totalIncome,
       icon: FiArrowUpRight,
       accent: 'text-teal-600',
@@ -96,15 +104,15 @@ export default function DashboardPage() {
       delta: plannedIncome > 0 ? `${plannedIncomePercentage.toFixed(1)}% of planned` : '+ current month',
     },
     {
-      label: 'Budgeted',
+      label: 'Budgeted Expenses',
       value: budgetSummary.totalBudgeted,
       icon: FiPieChart,
       accent: 'text-violet-600',
       surface: 'bg-violet-50',
-      delta: 'planned',
+      delta: 'expense plan',
     },
     {
-      label: 'Spent',
+      label: 'Spent Budget',
       value: budgetSummary.totalSpent,
       icon: FiCreditCard,
       accent: 'text-orange-600',
@@ -213,7 +221,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="mb-7 grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
+        <div className="mb-7 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-5">
           {metrics.map((metric) => (
             <Card key={metric.label} className={`overflow-hidden border-0 p-3 sm:p-4 ${metric.surface}`}>
               <CardHeader className="mb-4 flex flex-row items-start justify-between gap-2">
