@@ -88,7 +88,7 @@ export interface BudgetContextType {
   ) => void;
   dismissAlert: (alertId: string) => void;
   setCurrentMonth: (month: string) => void;
-  createMonthlyBudgets: (month: string) => void;
+  createMonthlyBudgets: (month: string, budgetOverrides?: Record<string, number>) => void;
   reload: () => Promise<void>;
   isLoading: boolean;
   accessStatus: 'loading' | 'ready' | 'needs_onboarding' | 'removed';
@@ -628,13 +628,26 @@ export function BudgetProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => (prev ? { ...prev, currentMonth: month } : prev));
   }, []);
 
-  const createMonthlyBudgetsAction = useCallback((month: string) => {
+  const createMonthlyBudgetsAction = useCallback((month: string, budgetOverrides: Record<string, number> = {}) => {
     if (!data) return;
 
     const previousMonth = getPreviousMonth(month);
     const carryOvers = calculateCarryOvers(previousMonth, data.monthlyCategories, data.expenses, data.categories);
+    const existingCategoryIds = new Set(
+      data.monthlyCategories
+        .filter((category) => category.month === month)
+        .map((category) => category.categoryId)
+    );
+    const missingCategories = data.categories
+      .filter((category) => !existingCategoryIds.has(category.id))
+      .map((category) => ({
+        ...category,
+        monthlyBudget: budgetOverrides[category.id] ?? category.monthlyBudget,
+      }));
 
-    budgetRepository.createMonthlyBudgets(month, data.categories, carryOvers, data)
+    if (missingCategories.length === 0) return;
+
+    budgetRepository.createMonthlyBudgets(month, missingCategories, carryOvers, data)
       .then((created) => setData((prev) => (prev ? { ...prev, monthlyCategories: [...prev.monthlyCategories, ...created] } : prev)))
       .catch((err) => handleRepositoryError(err, 'Unable to create monthly budgets'));
   }, [data, handleRepositoryError]);

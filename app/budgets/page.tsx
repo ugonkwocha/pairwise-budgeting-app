@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useBudget } from '@/lib/contexts/BudgetContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -36,10 +36,16 @@ export default function BudgetsPage() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
 
   // Get current month's categories
-  const currentMonthCategories = monthlyCategories.filter((mc) => mc.month === currentMonth);
+  const currentMonthCategories = useMemo(
+    () => monthlyCategories.filter((mc) => mc.month === currentMonth),
+    [monthlyCategories, currentMonth]
+  );
+  const currentMonthCategoryMap = useMemo(() => {
+    return new Map(currentMonthCategories.map((category) => [category.categoryId, category]));
+  }, [currentMonthCategories]);
 
   // Initialize form values based on mode
-  const initializeFormValues = () => {
+  const initializeFormValues = useCallback(() => {
     const budgets = new Map<string, number>();
     const carryOvers = new Map<string, boolean>();
 
@@ -49,24 +55,21 @@ export default function BudgetsPage() {
         carryOvers.set(cat.id, cat.carryOverEnabled);
       });
     } else {
-      currentMonthCategories.forEach((mc) => {
-        budgets.set(mc.categoryId, mc.monthlyBudget);
-        // CarryOver is at Category level, so fetch from categories
-        const category = categories.find((c) => c.id === mc.categoryId);
-        if (category) {
-          carryOvers.set(mc.categoryId, category.carryOverEnabled);
-        }
+      categories.forEach((cat) => {
+        const monthlyCategory = currentMonthCategoryMap.get(cat.id);
+        budgets.set(cat.id, monthlyCategory?.monthlyBudget ?? cat.monthlyBudget);
+        carryOvers.set(cat.id, cat.carryOverEnabled);
       });
     }
 
     setBudgetValues(budgets);
     setCarryOverValues(carryOvers);
-  };
+  }, [categories, currentMonthCategoryMap, editMode]);
 
   // Call on mount and when mode changes
   useEffect(() => {
     initializeFormValues();
-  }, [editMode, categories, monthlyCategories, currentMonth]);
+  }, [initializeFormValues]);
 
   // Auto-dismiss success message after 3 seconds
   useEffect(() => {
@@ -128,7 +131,15 @@ export default function BudgetsPage() {
         }
       });
     } else {
-      // Update current month categories
+      const missingCategoryIds = categories
+        .filter((category) => !currentMonthCategoryMap.has(category.id))
+        .map((category) => category.id);
+
+      if (missingCategoryIds.length > 0) {
+        createMonthlyBudgets(currentMonth, Object.fromEntries(budgetValues));
+      }
+
+      // Update existing current month categories
       currentMonthCategories.forEach((mc) => {
         const newBudget = budgetValues.get(mc.categoryId);
 
@@ -137,11 +148,13 @@ export default function BudgetsPage() {
             monthlyBudget: newBudget,
           });
         }
+      });
 
-        // Also update carryOver in category template
-        const newCarryOver = carryOverValues.get(mc.categoryId);
+      // Persist carryover settings for every category, including newly-created monthly rows.
+      categories.forEach((category) => {
+        const newCarryOver = carryOverValues.get(category.id);
         if (newCarryOver !== undefined) {
-          updateCategory(mc.categoryId, {
+          updateCategory(category.id, {
             carryOverEnabled: newCarryOver,
           });
         }
@@ -153,13 +166,14 @@ export default function BudgetsPage() {
 
   const totalBudget = Array.from(budgetValues.values()).reduce((sum, val) => sum + val, 0);
 
-  const dataToRender = editMode === 'template' ? categories : currentMonthCategories.map((mc) => {
-    const category = categories.find((c) => c.id === mc.categoryId);
+  const dataToRender = editMode === 'template' ? categories : categories.map((category) => {
+    const monthlyCategory = currentMonthCategoryMap.get(category.id);
     return {
-      id: mc.categoryId,
-      name: mc.categoryName,
-      monthlyBudget: mc.monthlyBudget,
-      carryOverEnabled: category?.carryOverEnabled || false,
+      id: category.id,
+      name: category.name,
+      monthlyBudget: monthlyCategory?.monthlyBudget ?? category.monthlyBudget,
+      carryOverEnabled: category.carryOverEnabled,
+      isMissingMonthlyBudget: !monthlyCategory,
     };
   });
 
@@ -257,8 +271,13 @@ export default function BudgetsPage() {
                   <Card key={categoryId} className="border-slate-200 bg-white">
                     <CardContent className="p-4">
                       <div className="mb-4">
-                        <label className="mb-2 block text-sm font-semibold text-slate-900">
-                          {item.name}
+                        <label className="mb-2 flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-900">
+                          <span>{item.name}</span>
+                          {'isMissingMonthlyBudget' in item && item.isMissingMonthlyBudget && (
+                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                              New this month
+                            </span>
+                          )}
                         </label>
                         <div className="grid grid-cols-[auto_1fr] items-center gap-2 sm:flex">
                           <span className="font-semibold text-slate-900">{currency}</span>
